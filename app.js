@@ -438,7 +438,7 @@
       A._sent = true; saveAnswers();
       root.innerHTML = '<div class="thanks"><h1>ありがとうございました</h1><p>' + esc(A.name || '') + ' さんの内容を受け取りました。詳しい内訳と、今できることのプランを用意して、LINEでご連絡します。</p>' +
         (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEに戻る</a>' : '') +
-        '<p class="tiny">まだ友だち追加がお済みでない方は、上のボタンから追加してお待ちください。</p></div>';
+        (CFG.lineUrl ? '<p class="tiny">まだ友だち追加がお済みでない方は、上のボタンから追加してお待ちください。</p>' : '') + '</div>';
       window.scrollTo(0, 0);
     };
     if (!CFG.endpoint) { console.warn('endpoint未設定'); setTimeout(done, 400); return; }
