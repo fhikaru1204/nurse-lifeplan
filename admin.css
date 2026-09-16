@@ -53,3 +53,13 @@ header.top .tools .btn.ghost { color: #fff; border-color: rgba(255,255,255,.5); 
 .pat button.del { border: none; background: transparent; color: #9b2c2c; font-weight: 700; cursor: pointer; font-size: 14px; padding: 0 4px; }
 .pat button.del:hover { background: #fdecea; border-radius: 4px; }
 @media print { .pat button.del { display: none; } }
+
+/* 4枚目：貯まっている金額−老後に必要な資金 */
+.sum .card .c-sub b { color: var(--deep); font-size: 15px; }
+.sum .card.c-gap .c-formula { font-size: 15px; color: var(--muted); margin-top: 4px; }
+.sum .card.c-gap .c-num { font-size: 22px; }
+.sum .card.c-gap.ok .c-num { color: #1f7a3a; }
+.sum .card.c-gap.short .c-num { color: #9b2c2c; }
+.sum .card.c-gap .c-tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 4px; vertical-align: middle; color: #fff; }
+.sum .card.c-gap.ok .c-tag { background: #1f7a3a; }
+.sum .card.c-gap.short .c-tag { background: #9b2c2c; }
