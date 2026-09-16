@@ -42,10 +42,11 @@
     const m = location.hash.match(/[#&]d=([^&]+)/);
     if (!m) return null;
     try {
-      let b = m[1].replace(/-/g, '+').replace(/_/g, '/'); while (b.length % 4) b += '=';
+      let raw = m[1]; try { raw = decodeURIComponent(raw); } catch (e) {}
+      let b = raw.replace(/[^A-Za-z0-9_-]/g, '').replace(/-/g, '+').replace(/_/g, '/'); while (b.length % 4) b += '=';
       const bin = atob(b); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       return JSON.parse(new TextDecoder('utf-8').decode(bytes));
-    } catch (e) { console.warn('hash decode failed', e); return null; }
+    } catch (e) { console.warn('hash decode failed', e); window.LP_HASH_BROKEN = true; return null; }
   }
   function normalize(obj) { if (!obj) return null; if (obj.answers) return obj.answers; if (obj.dob) return obj; return null; }
 
@@ -280,5 +281,6 @@
   $('btnLocal').onclick = () => { try { const s = localStorage.getItem('lp_answers_v1'); if (!s) { alert('この端末にはまだ回答が保存されていません。先に試算ページを最後まで進めてください。'); return; } load({ answers: JSON.parse(s), submittedAt: new Date().toISOString() }); } catch (e) { alert('読み込めませんでした'); } };
   $('btnPrint').onclick = () => window.print();
   const fromHash = decodeHash(); if (fromHash) load(fromHash);
+  else if (window.LP_HASH_BROKEN) { const p = document.createElement('p'); p.className = 'note'; p.style.cssText = 'background:#fdecea;color:#9b2c2c;border-radius:8px;padding:10px 12px;font-weight:700'; p.textContent = 'メールのリンクが途中で切れているようです（回答データを読み込めませんでした）。メール本文のリンクを最後までコピーして貼り直すか、スプレッドシート「raw」シートの該当行のJSONを下の欄に貼って「貼り付けたJSONを読み込む」を押してください。'; const l = document.getElementById('loader'); l.insertBefore(p, l.children[1]); }
   else { try { const s = localStorage.getItem('lp_answers_v1'); if (s && /debug/.test(location.search)) load({ answers: JSON.parse(s) }); } catch (e) {} }
 })();

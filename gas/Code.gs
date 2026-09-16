@@ -48,23 +48,33 @@ function doPost(e) {
     let raw = ss.getSheetByName('raw'); if (!raw) raw = ss.insertSheet('raw');
     raw.appendRow([new Date(), j(a.name), e.postData.contents]);
 
+    const adminLink = ADMIN_URL + '#d=' + Utilities.base64EncodeWebSafe(Utilities.newBlob(e.postData.contents).getBytes());
+    const lines = [
+      '新しい回答が届きました。',
+      '氏名：' + j(a.name) + '（' + c.age + '歳）',
+      '勤務先：' + j(a.employer) + ' / ' + j(a.employ) + ' / ' + j(a.shift) + ' / 年収 ' + j(a.income),
+      '判定：' + c.verdict + '  大きなお金 ' + c.bigTotal + '万 / 65歳に残る ' + c.at65 + '万 / 老後必要 ' + c.retireNeed + '万',
+      '不安：' + j(a.worries),
+      '連絡：' + j(a.contact) + ' / ' + j(a.slot),
+      '聞きたいこと：' + j(a.askTopics) + (a.askOther ? '（' + j(a.askOther) + '）' : ''),
+      '',
+      '面談用ページ（このリンクを開くと詳細が出ます）：',
+      adminLink,
+      '',
+      'スプレッドシート：https://docs.google.com/spreadsheets/d/' + SHEET_ID
+    ];
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    // HTML本文：長いリンクを <a> にして途中で切れないようにする（プレーンテキストだとメールソフトで分断されることがある）
+    const html = '<div style="font-family:sans-serif;font-size:14px;line-height:1.7">' +
+      lines.filter(l => l !== adminLink && l.indexOf('面談用ページ') !== 0 && l.indexOf('スプレッドシート') !== 0).map(l => esc(l)).join('<br>') + '<br><br>' +
+      '<a href="' + esc(adminLink) + '" style="display:inline-block;background:#2269a0;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold">面談用ページを開く</a><br><br>' +
+      '<a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '">スプレッドシートを開く</a>' +
+      '</div>';
     MailApp.sendEmail({
       to: NOTIFY_TO,
       subject: '【LP試算】' + j(a.name) + ' さん（' + c.age + '歳・判定 ' + c.verdict + '）',
-      body: [
-        '新しい回答が届きました。',
-        '氏名：' + j(a.name) + '（' + c.age + '歳）',
-        '勤務先：' + j(a.employer) + ' / ' + j(a.employ) + ' / ' + j(a.shift) + ' / 年収 ' + j(a.income),
-        '判定：' + c.verdict + '  大きなお金 ' + c.bigTotal + '万 / 65歳に残る ' + c.at65 + '万 / 老後必要 ' + c.retireNeed + '万',
-        '不安：' + j(a.worries),
-        '連絡：' + j(a.contact) + ' / ' + j(a.slot),
-        '聞きたいこと：' + j(a.askTopics) + (a.askOther ? '（' + j(a.askOther) + '）' : ''),
-        '',
-        '面談用ページ（このリンクを開くと詳細が出ます）：',
-        ADMIN_URL + '#d=' + Utilities.base64EncodeWebSafe(Utilities.newBlob(e.postData.contents).getBytes()),
-        '',
-        'スプレッドシート：https://docs.google.com/spreadsheets/d/' + SHEET_ID
-      ].join('\n')
+      body: lines.join('\n'),
+      htmlBody: html
     });
     return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
