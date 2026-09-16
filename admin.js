@@ -133,7 +133,7 @@
       const gapCls = gap >= 0 ? 'ok' : 'short';
       const gapLabel = gap >= 0 ? '余剰' : '不足';
       return '<div class="card"><div class="c-label">判定（' + tag + '）</div><div class="c-num">' + v + '</div>' + (baseV && baseV !== v ? '<div class="c-sub">回答どおり：' + baseV + '</div>' : '') +
-          '<div class="c-sub">65歳時に貯まっている金額 <b>' + fmt(bal65) + '円</b></div></div>' +
+          '<div class="c-bal"><span>65歳時に貯まっている金額</span><b>' + fmt(bal65) + '円</b></div></div>' +
         '<div class="card"><div class="c-label">65歳までの収入</div><div class="c-num">' + fmt(r.totalIn) + '</div><div class="c-sub">手取り ' + fmt(r.netIn) + '＋今の預貯金・資産 ' + fmt(r.now) + '＋退職金（税引後） ' + fmt(r.severanceNet) + '</div></div>' +
         '<div class="card"><div class="c-label">65歳までの支出</div><div class="c-num">' + fmt(r.totalOut) + '</div><div class="c-sub">生活費 ' + fmt(r.livingPaid) + '／旅行趣味 ' + fmt(r.tripPaid + r.hobbyPaid) + '／大きなお金 ' + fmt(r.bigPersonal) + '／借入 ' + fmt(r.debt) + '／使途未定 ' + fmt(r.leaked) + '</div></div>' +
         '<div class="card c-gap ' + gapCls + '"><div class="c-label">65歳時に貯まっている金額 − 老後に必要な資金</div>' +
