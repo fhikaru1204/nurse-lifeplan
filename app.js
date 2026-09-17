@@ -8,6 +8,8 @@
   // ?reset=1 で、この端末に保存された回答と面談ページの残した条件を全部消して最初から
   if (/reset/.test(location.search)) { try { Object.keys(localStorage).filter(k => k === STORE_KEY || k.indexOf('lp_patterns_') === 0).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.replace(location.pathname); }
   const A = loadAnswers();
+  // ?unlock=1：回答は残したまま、結果表示後のロックと送信済みフラグだけ外す（社内用・Zoomで一緒に入力して直したいとき）
+  if (/unlock/.test(location.search)) { delete A._locked; delete A._sent; A._page = Math.max(0, Number(A._page || 0) - 1); try { localStorage.setItem(STORE_KEY, JSON.stringify(A)); } catch (e) {} location.replace(location.pathname); }
 
   // ---------- ユーティリティ ----------
   function loadAnswers() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) { return {}; } }
@@ -326,18 +328,20 @@
       ]) + '</div>' : '') +
       '<div class="detail"><div class="d-title">くわしくは、面談でお見せします</div>' +
       '<ul><li>年ごとの収入と支出の表（結婚・出産・教育・住まい・老後まで）</li><li>夜勤をやめたとき、時短にしたとき、転職したときの3パターン比較</li><li>今の貯金・保険・借入を踏まえて、今からできること</li></ul>' +
-      '<p>ここに出ている数字は、あくまで目安です。' + (A.name ? esc(String(A.name).trim().replace(/s+/g, ' ')) + 'さんの' : 'あなたの') + '数字で組み直したものを、1回目の面談でご説明します。</p></div>' +
-      '<form id="f" autocomplete="on">' + visibleQuestions(PAGES[page]).map(renderQuestion).join('') + '</form>' +
+      '<p>ここに出ている数字は、あくまで目安です。' + (A.name ? esc(String(A.name).trim().split(/[ 　]+/).join(' ')) + 'さんの' : 'あなたの') + '数字で組み直したものを、1回目の面談でご説明します。</p></div>' +
+      (A._sent
+        ? '<div class="detail sent-box"><div class="d-title">この内容は送信済みです</div><p>担当（藤田）からLINEでご連絡します。面談のご希望・ご質問は、LINEからいつでもどうぞ。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEを開く</a>' : '') + '</div>'
+        : '<form id="f" autocomplete="on">' + visibleQuestions(PAGES[page]).map(renderQuestion).join('') + '</form>' +
       '<div class="actions"><button class="btn primary" id="btnSend">' + (A.contact === '今は希望しない' ? 'この内容を送る' : 'この内容を送って、面談を申し込む') + '</button></div>' +
-      '<p class="tiny">' + (A.contact === '今は希望しない' ? '送信後、担当（藤田）からLINEでひとことご連絡します。面談はいつでも申し込めます。' : '送信後、担当（藤田）からLINEで日程のご連絡をします。看護師さん限定です。') + '</p>' +
+      '<p class="tiny">' + (A.contact === '今は希望しない' ? '送信後、担当（藤田）からLINEでひとことご連絡します。面談はいつでも申し込めます。' : '送信後、担当（藤田）からLINEで日程のご連絡をします。看護師さん限定です。') + '</p>') +
       '</div>';
   }
 
   // ---------- 描画 ----------
-  let page = Math.min(Number(A._page || 0), PAGES.length - 1);
+  let page = A._locked ? PAGES.length - 1 : Math.min(Number(A._page || 0), PAGES.length - 1);
   const root = document.getElementById('app');
   function maxPage() { return Math.max(page, Number(A._max || 0)); }
-  function goTo(i) { readForm(); page = i; A._page = page; A._max = Math.max(Number(A._max || 0), page); saveAnswers(); render(); }
+  function goTo(i) { if (A._locked && i !== PAGES.length - 1) return; readForm(); page = i; A._page = page; A._max = Math.max(Number(A._max || 0), page); saveAnswers(); render(); }
 
   function visibleQuestions(p) { return (p.questions || []).filter(q => !q.showIf || q.showIf(A)); }
 
@@ -362,13 +366,14 @@
   function render(keepScroll) {
     const y = keepScroll ? window.scrollY : 0;
     const p = PAGES[page];
+    if (p.isResult && !A._locked) { A._locked = true; saveAnswers(); } // 1人1回：結果を一度見たら、この端末では回答を変えられない
     const pct = Math.round(page / (PAGES.length - 1) * 100);
     let html = '<div class="progress"><div class="bar" style="width:' + pct + '%"></div></div>' +
-      '<div class="steps">' + PAGES.map((x, i) => { const reach = i <= maxPage(); return '<span class="' + (i === page ? 'cur' : reach ? 'done' : '') + '"' + (reach && i !== page ? ' data-go="' + i + '" role="button"' : '') + '>' + esc(x.short) + '</span>'; }).join('') + '</div>' +
+      '<div class="steps">' + PAGES.map((x, i) => { const reach = i <= maxPage(); return '<span class="' + (i === page ? 'cur' : reach ? 'done' : '') + '"' + (reach && i !== page && !A._locked ? ' data-go="' + i + '" role="button"' : '') + '>' + esc(x.short) + '</span>'; }).join('') + '</div>' +
       '<h1>' + esc(p.title) + '</h1>';
     if (p.isResult) {
       html += renderResult();
-      html += '<div class="nav"><button class="btn ghost" id="btnBack">戻る</button></div>';
+      html += '<p class="tiny lock-note">結果を表示したあとは、回答の変更・やり直しはできません。条件を変えた場合の試算（夜勤をやめたら・時短にしたら 等）は、面談でお見せします。</p>';
     } else {
       if (p.html) html += p.html;
       if (p.ref) html += p.ref();

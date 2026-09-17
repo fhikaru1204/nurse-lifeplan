@@ -43,14 +43,23 @@ function doPost(e) {
       j(a.retireStyle), j(a.retireText), j(a.retireLiving), j(a.contact), j(a.slot), j(a.askTopics), j(a.askOther),
       c.verdict, c.totalIn, c.totalOut, c.at65, c.retireNeed, c.gap, body.ua
     ];
+    // 1人1回の補強：同じ氏名＋生年月日の過去の送信を数える（拒否はせず、通知メールに出す）
+    const norm = v => String(v == null ? '' : v).split(' ').join('').split('　').join('');
+    const dobStr = v => (v instanceof Date) ? Utilities.formatDate(v, 'Asia/Tokyo', 'yyyy-MM-dd') : String(v == null ? '' : v).slice(0, 10);
+    let prior = 0, firstAt = '';
+    const last = sh.getLastRow();
+    if (last >= 2 && a.name && a.dob) {
+      const vals = sh.getRange(2, 1, last - 1, 3).getValues(); // 受信日時・氏名・生年月日
+      vals.forEach(function (v) { if (norm(v[1]) === norm(a.name) && dobStr(v[2]) === dobStr(a.dob)) { prior++; if (!firstAt) firstAt = (v[0] instanceof Date) ? Utilities.formatDate(v[0], 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') : String(v[0]); } });
+    }
     sh.appendRow(row);
     // 生JSONも別シートに保存（面談時の詳細確認用）
     let raw = ss.getSheetByName('raw'); if (!raw) raw = ss.insertSheet('raw');
-    raw.appendRow([new Date(), j(a.name), e.postData.contents]);
+    raw.appendRow([new Date(), j(a.name), e.postData.contents, (prior + 1) + '回目']);
 
     const adminLink = ADMIN_URL + '#d=' + Utilities.base64EncodeWebSafe(Utilities.newBlob(e.postData.contents).getBytes());
     const lines = [
-      '新しい回答が届きました。',
+      (prior > 0 ? '⚠ 同じ氏名・生年月日の送信が過去に ' + prior + ' 件あります（今回が ' + (prior + 1) + ' 回目・初回 ' + firstAt + '）' : '新しい回答が届きました。'),
       '氏名：' + j(a.name) + '（' + c.age + '歳）',
       '勤務先：' + j(a.employer) + ' / ' + j(a.employ) + ' / ' + j(a.shift) + ' / 年収 ' + j(a.income),
       '判定：' + c.verdict + '  大きなお金 ' + c.bigTotal + '万 / 65歳に残る ' + c.at65 + '万 / 老後必要 ' + c.retireNeed + '万',
@@ -72,7 +81,7 @@ function doPost(e) {
       '</div>';
     MailApp.sendEmail({
       to: NOTIFY_TO,
-      subject: '【LP試算】' + j(a.name) + ' さん（' + c.age + '歳・判定 ' + c.verdict + '）',
+      subject: (prior > 0 ? '【LP試算・' + (prior + 1) + '回目】' : '【LP試算】') + j(a.name) + ' さん（' + c.age + '歳・判定 ' + c.verdict + '）',
       body: lines.join('\n'),
       htmlBody: html
     });

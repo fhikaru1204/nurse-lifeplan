@@ -112,3 +112,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--sky); }
 footer { text-align: center; font-size: 11px; color: #8a94a0; padding: 20px; }
 footer a { color: #8a94a0; }
 @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } h1 { font-size: 20px; } .eq { padding: 6px 10px; } .eq-row { font-size: 14px; gap: 6px; } .eq-row b { font-size: 17px; } .eq-row.eq-result { margin: 6px -10px 0; padding: 12px 10px; } .eq-row.eq-result b { font-size: 21px; } }
+
+/* 1人1回：結果表示後のロック案内・送信済み表示 */
+.lock-note { margin-top: 18px; padding: 10px 12px; background: #eef3f8; border-radius: 8px; color: var(--muted); line-height: 1.6; }
+.sent-box .btn { display: inline-block; margin-top: 10px; }
