@@ -67,7 +67,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--sky); }
 .result .verdict.tight { background: linear-gradient(135deg, #b26a00, #e08e0b); }
 .result .verdict.short { background: linear-gradient(135deg, #9b2c2c, #c0392b); }
 .v-label { font-size: 13px; opacity: .9; }
-.v-main { font-size: 26px; font-weight: 800; margin: 2px 0 6px; }
+.v-main { font-size: 26px; font-weight: 800; margin: 2px 0 6px; line-height: 1.35; }
+.nowrap { white-space: nowrap; }
 .verdict p { margin: 0; font-size: 14px; }
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .card { background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; }
