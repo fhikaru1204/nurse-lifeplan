@@ -298,6 +298,18 @@
     if (r.homeUp) tl.push('マイホーム');
     if (r.nightStop < 65 && r.nightStop > r.age) tl.push(r.nightStop + '歳 夜勤を外れる');
     tl.push('65歳');
+    // 退職金の前提（転職の有無で大きく変わるため、もう一方の場合の額も見せる）
+    let sevNote = '';
+    if (r.tenure > 0 || r.jobChange) {
+      const altYear = r.age < 44 ? 45 : r.age + 2;
+      if (r.jobChange) {
+        const stay = calc(A, { jobChange: false });
+        sevNote = '※ 退職金は、<b>' + r.jobYear + '歳で転職する前提</b>で計算しています' + (r.jobAssumed ? '（転職のご回答が「' + esc(A.jobChange) + '」のため、統計に合わせて置いた年齢です。50代の看護職の62.6%が3か所以上の勤務先を経験・日本看護協会 2021年）' : '') + '。退職金は最後の職場の勤続年数で決まります。今の職場に60歳まで勤め続けた場合の目安は約' + fmt(stay.severanceNet) + '円です。';
+      } else if (altYear < 60) {
+        const alt = calc(A, { jobChange: true, jobYear: altYear });
+        sevNote = '※ 退職金は、<b>今の職場に60歳まで勤め続ける前提</b>で計算しています。' + altYear + '歳で転職した場合の目安は約' + fmt(alt.severanceNet) + '円になり、65歳のときに手元に残る見込みは約' + fmt(alt.at65) + '円に変わります（50代の看護職の62.6%が3か所以上の勤務先を経験・日本看護協会 2021年）。';
+      }
+    }
     const row = (label, val, cls) => '<div class="eq-row' + (cls ? ' ' + cls : '') + '"><span>' + label + '</span><b>' + val + '</b></div>';
     const sub = (label, val) => '<div class="eq-sub"><span>' + label + '</span><span>' + val + '</span></div>';
     return '<div class="result">' +
@@ -315,6 +327,7 @@
       '</div>' +
       '<p class="note">家族全体でこれからかかる大きなお金は約 <b>' + fmt(r.bigHH) + '円</b>（結婚・出産・教育・住まい・車・旅行・趣味の合計）。上の式には、そのうち自分の負担分だけが入っています。</p>' +
       '<div class="timeline">' + tl.map(t => '<span>' + esc(t) + '</span>').join('<i></i>') + '</div>' +
+      '<p class="note">' + sevNote + '</p>' +
       '<p class="note">※ 家計の分担は「' + esc(r.shareLabel) + '」として計算しています。<br>※ 現在ご自身で取り組まれている資産形成（NISA・iDeCo・保険など）の運用による増加分は含まれていません。</p>' +
       (/debug/.test(location.search) ? '<div class="ref"><div class="ref-title">内訳（確認用・debug表示）</div>' + table(['項目', '万円'], [
         ['結婚（自己負担＋指輪・旅行・新生活）×分担', fmt(r.marry)], ['出産（' + r.kNew + '人×35）×分担', fmt(r.birth)], ['住まいの頭金（×分担・諸費用8%はローン側）', fmt(r.homeUp)], ['<b>一時支出の合計</b>', '<b>' + fmt(r.oneTime) + '</b>'],

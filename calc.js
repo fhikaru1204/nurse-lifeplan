@@ -152,8 +152,11 @@
     const yearsNow = { '1年未満': 0.5, '1〜2年': 1.5, '3〜5年': 4, '6〜9年': 7.5, '10〜14年': 12, '15〜19年': 17, '20年以上': 22 }[a.years] || 0;
     const stopAge = { '55歳まで': 55, '60歳まで': 60, '65歳まで': 65, '70歳まで': 70, '働ける限り': 65 }[a.workUntil] || 60;
     const fullTime = /常勤/.test(a.employ || '');
-    const jobChange = opts.jobChange != null ? !!opts.jobChange : a.jobChange === '予定あり（1年以内）';
-    const jobYear = jobChange ? (opts.jobYear != null ? Number(opts.jobYear) : age + 1) : 999;   // 転職の年齢（既定：来年）
+    // 転職の既定：「予定あり（1年以内）」→来年。「考え中」「わからない」→統計に合わせて45歳で1回（50代の看護職は勤務先3か所以上が62.6%・平均3.6か所＝看護協会2021。「考え中」の44〜56歳は2年後）。「予定なし」→転職なし
+    const jobAuto = a.jobChange === '予定あり（1年以内）' ? age + 1 : a.jobChange === '考え中' ? (age < 44 ? 45 : age < 57 ? age + 2 : null) : a.jobChange === 'わからない' ? (age < 44 ? 45 : null) : null;   // 「わからない」の44歳以上と「考え中」の57歳以上は転職なしで計算
+    const jobAssumed = opts.jobChange == null && opts.jobYear == null && jobAuto != null && a.jobChange !== '予定あり（1年以内）';   // 統計から置いた転職（本人の予定ではない）
+    const jobChange = opts.jobChange != null ? !!opts.jobChange : jobAuto != null;
+    const jobYear = jobChange ? (opts.jobYear != null ? Number(opts.jobYear) : (opts.jobChange == null && jobAuto != null ? jobAuto : age + 1)) : 999;   // 転職の年齢
     // 勤続：転職ありなら転職の年から60歳までだけ数える（転職前の分は退職金に入れない）。年収は転職で変えない
     const tenure = fullTime && stopAge >= 60 ? (jobChange ? Math.max(0, 60 - jobYear) : yearsNow + Math.max(0, 60 - age)) : 0;
     const monthlyPay60 = baseAt(58) / 12 * 0.84;
@@ -245,7 +248,7 @@
     const verdict = gap >= 300 ? 'ok' : gap >= -300 ? 'tight' : 'short';
     const bigHH = marryHH + birthHH + eduTotalHH + homeUpHH + carBuyYears.length * carPrice + Math.round(tripHHPaid) + Math.round(hobbyYear * yearsTo65);
 
-    return { savingYear: savingNow, jobChange, jobYear, severanceTax, severanceNet, sevMonths, monthlyPay60: Math.round(monthlyPay60 * 10) / 10, sevDeduct, yearsNow, stopAge, fullTime, leaked, keepRate, pensionFull, pensionLevel, livingArea: livingArea ? livingArea.name : null, livingStat: Math.round(livStatYear / 12 * 10) / 10, shareAuto, age, yearsTo65, kids, kNew, couple, shareVal, shareLabel, marryYear, marry, birth, homeUp, oneTime, eduTotalHH, eduPaid, carPaid, tripPaid, hobbyPaid, loanPaid, livingPaid, livingRate, livingNow: living, rentNetYear, incomeNow, netIn, rentIn, incomeLost, now, savedByYear, severance, tenure, debt, totalIn, totalOut, bigPersonal, bigHH, at65raw, at65, investPaid, investValue, pension, living: livingRetire, retireShare, retireNeed, gap, verdict, nightStop, homeYear, childStart, carBuyYears, downPay, loanYearHH, rows };
+    return { savingYear: savingNow, jobChange, jobYear, jobAssumed, severanceTax, severanceNet, sevMonths, monthlyPay60: Math.round(monthlyPay60 * 10) / 10, sevDeduct, yearsNow, stopAge, fullTime, leaked, keepRate, pensionFull, pensionLevel, livingArea: livingArea ? livingArea.name : null, livingStat: Math.round(livStatYear / 12 * 10) / 10, shareAuto, age, yearsTo65, kids, kNew, couple, shareVal, shareLabel, marryYear, marry, birth, homeUp, oneTime, eduTotalHH, eduPaid, carPaid, tripPaid, hobbyPaid, loanPaid, livingPaid, livingRate, livingNow: living, rentNetYear, incomeNow, netIn, rentIn, incomeLost, now, savedByYear, severance, tenure, debt, totalIn, totalOut, bigPersonal, bigHH, at65raw, at65, investPaid, investValue, pension, living: livingRetire, retireShare, retireNeed, gap, verdict, nightStop, homeYear, childStart, carBuyYears, downPay, loanYearHH, rows };
   }
 
   window.LP_CALC = { calc, ageFrom, kidsNew, kidsNow, isCouple, statAt, areaFromAddress };

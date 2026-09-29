@@ -220,7 +220,7 @@
       const n = $('pNight').value; if (n === 'now') o.nightStop = age; else if (n) o.nightStop = Number(n);
       const s = $('pShort').value; if (s !== '') o.shortYears = Number(s);
       const jb = $('pJob').value; if (jb !== '') o.jobChange = jb === '1';
-      if ($('pJobYear') && $('pJobYear').value && (o.jobChange || (jb === '' && a.jobChange === '予定あり（1年以内）'))) o.jobYear = Number($('pJobYear').value);
+      if ($('pJobYear') && $('pJobYear').value && (o.jobChange || (jb === '' && /予定あり|考え中|わからない/.test(a.jobChange || '')))) o.jobYear = Number($('pJobYear').value);
       if (PROPOSAL) {
         const inv = Number($('pInv').value || 0); if (inv > 0) o.invest = { monthly: inv, rate: Number($('pRate').value || 0), from: Number($('pInvFrom').value || age) };
         const rent = Number($('pRent').value || 0); if (rent > 0) o.rent = { monthly: rent, from: Number($('pRentFrom').value || age) };
