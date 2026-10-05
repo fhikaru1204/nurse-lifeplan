@@ -343,7 +343,7 @@
       '<ul><li>年ごとの収入と支出の表（結婚・出産・教育・住まい・老後まで）</li><li>夜勤をやめたとき、時短にしたとき、転職したときの3パターン比較</li><li>今の貯金・保険・借入を踏まえて、今からできること</li></ul>' +
       '<p>ここに出ている数字は、あくまで目安です。' + (A.name ? esc(String(A.name).trim().split(/[ 　]+/).join(' ')) + 'さんの' : 'あなたの') + '数字で組み直したものを、1回目の面談でご説明します。</p></div>' +
       (A._sent
-        ? '<div class="detail sent-box"><div class="d-title">この内容は送信済みです</div><p>担当（藤田）からLINEでご連絡します。友だち追加がまだの方は、下のボタンから追加して、お名前をひとこと送ってください。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEを開く（友だち追加）</a>' : '') + '</div>'
+        ? '<div class="detail sent-box"><div class="d-title">この内容は送信済みです</div><p>担当（藤田）からLINEでご連絡します。友だち追加がまだの方は、下のボタンから追加してください。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEを開く（友だち追加）</a><div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div>' : '') + '</div>'
         : '<form id="f" autocomplete="on">' + visibleQuestions(PAGES[page]).map(renderQuestion).join('') + '</form>' +
       '<div class="actions"><button class="btn primary" id="btnSend">' + (A.contact === '今は希望しない' ? 'この内容を送る' : 'この内容を送って、面談を申し込む') + '</button></div>' +
       '<p class="tiny">' + (A.contact === '今は希望しない' ? '送信後、LINE の友だち追加をお願いします。担当（藤田）からLINEでひとことご連絡します。面談はいつでも申し込めます。' : '送信後、LINE の友だち追加をお願いします。担当（藤田）からLINEで日程のご連絡をします。看護師さん限定です。') + '</p>') +
@@ -456,7 +456,7 @@
       A._sent = true; saveAnswers();
       root.innerHTML = '<div class="thanks"><h1>ありがとうございました</h1><p>' + esc(A.name || '') + ' さんの内容を受け取りました。結果のくわしい説明と日程のご連絡は、LINEでお送りします。</p>' +
         (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEで友だち追加する</a>' : '') +
-        (CFG.lineUrl ? '<p class="tiny">友だち追加のあと、お名前をひとこと送ってください。どなたの試算か分かるようにするためです。すでに追加済みの方も、お名前を送っていただけると確実です。</p>' : '') + '</div>';
+        (CFG.lineUrl ? '<div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div><p class="tiny">すでに追加済みの方も、お名前を送っていただけると確実です。</p>' : '') + '</div>';
       window.scrollTo(0, 0);
     };
     if (!CFG.endpoint) { console.warn('endpoint未設定'); setTimeout(done, 400); return; }
