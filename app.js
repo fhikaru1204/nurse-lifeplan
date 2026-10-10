@@ -253,9 +253,9 @@
         { id: 'debtTotal', type: 'number', label: '借入の残高（合計）', required: true, unit: '万円', showIf: a => a.debtHas === 'yes' },
         { id: 'debtMonthly', type: 'number', label: '毎月の返済額（合計）', required: true, unit: '万円', showIf: a => a.debtHas === 'yes' },
         { id: 'savings', type: 'number', label: '預貯金の合計', required: true, unit: '万円' },
-        { id: 'investAssets', type: 'number', label: '預貯金以外の資産（株・投信・保険の解約返戻金など）', unit: '万円', note: 'なければ0で' },
         { id: 'assets', type: 'check', label: '今取り組んでいる資産形成（あてはまるもの全部）', required: true, options: OPT.assets },
         { id: 'assetsOther', type: 'text', label: 'その他の内容', ph: '自由に', showIf: a => (a.assets || []).indexOf('その他') >= 0 },
+        { id: 'investAssets', type: 'number', label: '預貯金以外の資産（株・投信・保険の解約返戻金など）', unit: '万円', get required() { return hasInvest(A); }, get note() { return hasInvest(A) ? '選んだ資産形成（投資信託・NISA・iDeCo・保険など）の今の残高を、だいたいでいいので入れてください。0のままだと計算に入りません' : 'なければ0で'; } },
         { id: 'savingMonthly', type: 'radio', label: '毎月、貯金や積立に回せている額', required: true, options: OPT.savingMonthly },
         { id: 'insurance', type: 'check', label: '入っている保険（あてはまるもの全部）', required: true, options: OPT.insurance },
         { id: 'insuranceMonthly', type: 'radio', label: '保険料の合計（月）', options: OPT.insuranceMonthly, showIf: a => (a.insurance || []).some(x => x !== '入っていない' && x !== 'わからない') },
@@ -285,6 +285,8 @@
   const kidsNew = a => window.LP_CALC.kidsNew(a);
   const kidsNow = a => window.LP_CALC.kidsNow(a);
   const isCouple = a => window.LP_CALC.isCouple(a);
+  const INVEST_KINDS = ['NISA（つみたて）', 'NISA（成長投資）', 'iDeCo', '株式', '投資信託', '不動産', '貯蓄型の保険', '外貨・外貨建て保険', '暗号資産'];
+  const hasInvest = a => (a.assets || []).some(x => INVEST_KINDS.indexOf(x) >= 0);  // 残高を聞くべき資産形成を選んでいるか
 
   // 希望を一つ変えたらどうなるか（判定が ok 以外のときだけ・収入側の変化は面談で見せる）
   function whatIf(r) {
