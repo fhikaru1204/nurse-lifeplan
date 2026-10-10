@@ -179,11 +179,11 @@
       id: 'marriage', title: '結婚について教えてください', short: '結婚',
       ref: REF.wedding,
       questions: [
-        { id: 'marital', type: 'radio', label: '現在', required: true, options: OPT.marital },
+        { id: 'marital', type: 'radio', label: '現在', required: true, get options() { const h = A.household || ''; if (/^既婚/.test(h)) return OPT.marital.filter(o => o.v === '既婚'); if (/^(独身|シングル)/.test(h)) return OPT.marital.filter(o => o.v !== '既婚'); return OPT.marital; }, note: '最初に選んだ「世帯の状況」に合わせて、選べる項目を絞っています' },
         { id: 'marryWish', type: 'radio', label: '結婚の希望', required: true, options: OPT.wish3, showIf: a => a.marital !== '既婚' },
         { id: 'marryWhen', type: 'radio', label: '時期のイメージ', options: OPT.timing, showIf: a => a.marital !== '既婚' && a.marryWish === 'yes' },
         { id: 'weddingPlan', type: 'radio', label: '式のイメージ', options: OPT.weddingPlan, showIf: a => a.marital !== '既婚' && a.marryWish === 'yes' },
-        { id: 'partnerIncome', type: 'radio', label: 'パートナーの年収（だいたいで）', options: OPT.partnerIncome, showIf: a => a.marital === '既婚' || a.household === '独身・同棲' },
+        { id: 'partnerIncome', type: 'radio', label: 'パートナーの年収（だいたいで）', options: OPT.partnerIncome, showIf: a => a.marital === '既婚' || /^既婚/.test(a.household || '') || a.household === '独身・同棲' },
         { id: 'shareMode', type: 'radio', label: '家計の分担はどのくらいのイメージですか（結婚後の生活費・教育費・住まい・旅行など）', required: true, options: OPT.shareMode, showIf: a => isCouple(a) }
       ]
     },
@@ -219,9 +219,9 @@
       html: '<p class="lead-s">旅行や車は「楽しむためのお金」。我慢する前提ではなく、ちゃんと予定に入れておくために聞いています。</p>',
       questions: [
         { id: 'tripDomesticCount', type: 'radio', label: '国内旅行は年に', required: true, options: OPT.tripCount },
-        { id: 'tripDomestic', type: 'radio', label: '国内旅行 1回の予算', options: OPT.tripDomestic, showIf: a => a.tripDomesticCount && a.tripDomesticCount !== 'n0' },
+        { id: 'tripDomestic', type: 'radio', label: '国内旅行 1回の予算（自分1人分）', note: '家族で行く分は、人数に応じて計算に入れます', options: OPT.tripDomestic, showIf: a => a.tripDomesticCount && a.tripDomesticCount !== 'n0' },
         { id: 'tripAbroadCount', type: 'radio', label: '海外旅行は年に', required: true, options: OPT.tripCount },
-        { id: 'tripAbroad', type: 'radio', label: '海外旅行 1回の予算', options: OPT.tripAbroad, showIf: a => a.tripAbroadCount && a.tripAbroadCount !== 'n0' },
+        { id: 'tripAbroad', type: 'radio', label: '海外旅行 1回の予算（自分1人分）', note: '家族で行く分は、人数に応じて計算に入れます', options: OPT.tripAbroad, showIf: a => a.tripAbroadCount && a.tripAbroadCount !== 'n0' },
         { id: 'carHave', type: 'radio', label: '車は', required: true, options: OPT.carHave },
         { id: 'carWantWhen', type: 'radio', label: 'いつごろ欲しいですか', required: true, options: OPT.timing, showIf: a => a.carHave === 'plan' },
         { id: 'carLoanMonthly', type: 'number', label: '今の車のローン返済（月）', required: true, unit: '万円', note: 'ローンがなければ0', showIf: a => a.carHave === 'yes' },
@@ -286,6 +286,28 @@
   const kidsNow = a => window.LP_CALC.kidsNow(a);
   const isCouple = a => window.LP_CALC.isCouple(a);
 
+  // 希望を一つ変えたらどうなるか（判定が ok 以外のときだけ・収入側の変化は面談で見せる）
+  function whatIf(r) {
+    if (r.verdict === 'ok') return '';
+    const step = (arr, v) => { const i = arr.indexOf(v); return i > 0 ? arr[i - 1] : null; };
+    const RL = ['r15', 'r20', 'r25', 'r30', 'r40'], CNT = ['n0', 'n1', 'n2', 'n4'];
+    const cntLabel = v => (OPT.tripCount.find(o => o.v === v) || {}).l || v;
+    const tries = [];
+    const rl = step(RL, A.retireLiving || 'r20'); if (rl) tries.push({ label: '老後の生活費の希望を 月' + D.retireLivingMid[rl] + '万円 にする', a: { retireLiving: rl } });
+    if (A.tripAbroadCount && A.tripAbroadCount !== 'n0') { const n = step(CNT, A.tripAbroadCount); tries.push({ label: n === 'n0' ? '海外旅行をやめる' : '海外旅行を ' + cntLabel(n) + ' にする', a: { tripAbroadCount: n } }); }
+    else if (A.tripDomesticCount && A.tripDomesticCount !== 'n0' && A.tripDomesticCount !== 'n1') { const n = step(CNT, A.tripDomesticCount); tries.push({ label: '国内旅行を ' + cntLabel(n) + ' にする', a: { tripDomesticCount: n } }); }
+    const SV = OPT.savingMonthly.map(o => o.v); const si = SV.indexOf(A.savingMonthly || 's0'); const sv = si >= 0 && si < SV.length - 1 ? SV[si + 1] : null;
+    if (sv) tries.push({ label: '毎月の貯金を ' + (OPT.savingMonthly.find(o => o.v === sv) || {}).l + ' にする（生活費をその分だけ減らす）', a: { savingMonthly: sv } });
+    const short = x => Math.max(0, x.retireNeed - Math.min(x.at65raw, x.at65));  // 65歳までの赤字も含めた不足の合計（見出しの「あと○○万」は65歳の残りを0で止めるため、赤字の人は旅行・趣味を減らしても動かない）
+    const base = short(r);
+    const items = tries.map(t => { const x = calc(Object.assign({}, A, t.a)); const sv = short(x); return { label: t.label, after: sv, diff: base - sv }; }).filter(x => x.diff >= 50);
+    if (!items.length) return '';
+    return '<div class="detail whatif"><div class="d-title">希望を一つ変えると、こう変わります（目安）</div>' +
+      '<p class="tiny">今の不足の合計（65歳までの赤字があればそれも含めて）：<b>' + fmt(base) + '円</b></p><ul>' +
+      items.map(x => '<li>' + esc(x.label) + ' → ' + (x.after <= 0 ? '不足がなくなる計算になります' : '不足が <b>' + fmt(x.after) + '円</b> まで減ります') + '（' + fmt(x.diff) + '円 改善）</li>').join('') +
+      '</ul><p class="tiny">数字は、ほかの条件をそのままにして一つだけ変えたときの目安です。収入側（働き方・夜勤・転職）を変えた場合は面談でお見せします。</p></div>';
+  }
+
   function renderResult() {
     const r = calc(A);
     const v = { ok: ['余裕がありそう', 'このペースなら、老後に自分で用意する分まで届きそうです。ただし途中の働き方の変化は入っていません。'],
@@ -339,6 +361,7 @@
         ['年金の目安：今の制度' + r.pensionFull + '万 × 給付水準' + Math.round(r.pensionLevel * 100) + '%', r.pension + '万/月'], ['老後（希望' + r.living + '万×分担' + Math.round(r.retireShare * 100) + '%−年金' + r.pension + '万）×12×25年＋介護542', fmt(r.retireNeed)], ['<b>差額（判定）</b>', '<b>' + fmt(r.gap) + '</b>'],
         ['分担割合／結婚の年', r.shareVal + '／' + (r.marryYear === 999 ? 'なし' : r.marryYear + '歳')]
       ]) + '</div>' : '') +
+      whatIf(r) +
       '<div class="detail"><div class="d-title">くわしくは、面談でお見せします</div>' +
       '<ul><li>年ごとの収入と支出の表（結婚・出産・教育・住まい・老後まで）</li><li>夜勤をやめたとき、時短にしたとき、転職したときの3パターン比較</li><li>今の貯金・保険・借入を踏まえて、今からできること</li></ul>' +
       '<p>ここに出ている数字は、あくまで目安です。' + (A.name ? esc(String(A.name).trim().split(/[ 　]+/).join(' ')) + 'さんの' : 'あなたの') + '数字で組み直したものを、1回目の面談でご説明します。</p></div>' +

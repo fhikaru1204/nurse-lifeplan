@@ -19,7 +19,7 @@
   function ageFrom(dob) { if (!dob) return null; const b = new Date(dob); if (isNaN(b)) return null; const t = new Date(); let a = t.getFullYear() - b.getFullYear(); const m = t.getMonth() - b.getMonth(); if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--; return a; }
   function kidsNew(a) { return a.childWish === 'yes' ? ({ '1人': 1, '2人': 2, '3人以上': 3 }[a.childNum] || 1) : 0; }
   function kidsNow(a) { return a.childNow && a.childNow !== 'いない' ? ({ '1人': 1, '2人': 2, '3人以上': 3 }[a.childNow] || 0) : 0; }
-  function isCouple(a) { return a.marital === '既婚' || a.household === '独身・同棲' || (a.marital !== '既婚' && a.marryWish === 'yes'); }
+  function isCouple(a) { return a.marital === '既婚' || /^既婚/.test(a.household || '') || a.household === '独身・同棲' || (a.marital !== '既婚' && a.marryWish === 'yes'); }
 
   // 住所の文字列からエリアを判定し、参考表（二人以上・勤労者の大人一人あたり）の値を返す。主要都市 → 都道府県→地方（家計調査の地方区分）。判定できなければ null
   const AREA_CITY = [['東京都区部', /東京都.*区/], ['さいたま市', /さいたま市/], ['千葉市', /千葉市/], ['横浜市', /横浜市/], ['川崎市', /川崎市/], ['相模原市', /相模原市/], ['札幌市', /札幌市/], ['仙台市', /仙台市/], ['名古屋市', /名古屋市/], ['京都市', /京都市/], ['大阪市', /大阪市/], ['神戸市', /神戸市/], ['広島市', /広島市/], ['福岡市', /福岡市/], ['那覇市', /那覇市/]];

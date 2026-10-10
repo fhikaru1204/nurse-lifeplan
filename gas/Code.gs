@@ -61,8 +61,8 @@ function doPost(e) {
     const lines = [
       (prior > 0 ? '⚠ 同じ氏名・生年月日の送信が過去に ' + prior + ' 件あります（今回が ' + (prior + 1) + ' 回目・初回 ' + firstAt + '）' : '新しい回答が届きました。'),
       '氏名：' + j(a.name) + '（' + c.age + '歳）',
-      '勤務先：' + j(a.employer) + ' / ' + j(a.employ) + ' / ' + j(a.shift) + ' / 年収 ' + j(a.income),
-      '判定：' + c.verdict + '  大きなお金 ' + c.bigTotal + '万 / 65歳に残る ' + c.at65 + '万 / 老後必要 ' + c.retireNeed + '万',
+      '勤務先：' + j(a.employer) + ' / ' + j(a.employ) + ' / ' + j(a.shift) + ' / 年収 ' + ({i300:'300万未満',i350:'300〜349万',i400:'350〜399万',i450:'400〜449万',i500:'450〜499万',i550:'500〜549万',i600:'550〜599万',i700:'600〜699万',i800:'700〜799万',i1000:'800〜999万',i1000p:'1,000万以上'}[a.income] || j(a.income)),
+      '判定：' + c.verdict + '  大きなお金 ' + (c.bigPersonal != null ? c.bigPersonal : c.bigTotal) + '万 / 65歳に残る ' + c.at65 + '万 / 老後必要 ' + c.retireNeed + '万',
       '不安：' + j(a.worries),
       '連絡：' + j(a.contact) + ' / ' + j(a.slot),
       '聞きたいこと：' + j(a.askTopics) + (a.askOther ? '（' + j(a.askOther) + '）' : ''),
