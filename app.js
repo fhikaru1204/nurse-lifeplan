@@ -296,7 +296,7 @@
     const rl = step(RL, A.retireLiving || 'r20'); if (rl) tries.push({ label: '老後の生活費の希望を 月' + D.retireLivingMid[rl] + '万円 にする', a: { retireLiving: rl } });
     if (A.tripAbroadCount && A.tripAbroadCount !== 'n0') { const n = step(CNT, A.tripAbroadCount); tries.push({ label: n === 'n0' ? '海外旅行をやめる' : '海外旅行を ' + cntLabel(n) + ' にする', a: { tripAbroadCount: n } }); }
     else if (A.tripDomesticCount && A.tripDomesticCount !== 'n0' && A.tripDomesticCount !== 'n1') { const n = step(CNT, A.tripDomesticCount); tries.push({ label: '国内旅行を ' + cntLabel(n) + ' にする', a: { tripDomesticCount: n } }); }
-    const SV = OPT.savingMonthly.map(o => o.v); const si = SV.indexOf(A.savingMonthly || 's0'); const sv = si >= 0 && si < SV.length - 1 ? SV[si + 1] : null;
+    const SV = OPT.savingMonthly.map(o => o.v); const si = Math.max(SV.indexOf(A.savingMonthly || 's0'), 1); const sv = si < SV.length - 1 ? SV[si + 1] : null;  // 今が「ほぼできていない／1万円未満」なら 1〜3万円 から
     if (sv) tries.push({ label: '毎月の貯金を ' + (OPT.savingMonthly.find(o => o.v === sv) || {}).l + ' にする（生活費をその分だけ減らす）', a: { savingMonthly: sv } });
     const short = x => Math.max(0, x.retireNeed - Math.min(x.at65raw, x.at65));  // 65歳までの赤字も含めた不足の合計（見出しの「あと○○万」は65歳の残りを0で止めるため、赤字の人は旅行・趣味を減らしても動かない）
     const base = short(r);
