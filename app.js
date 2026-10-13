@@ -382,7 +382,7 @@
   // 入口の計測（個人情報なし）：開いた／どのページまで進んだ／送信した を GAS の log シートに 1 行ずつ送る
   const SID = (() => { try { let v = localStorage.getItem('lp_sid'); if (!v) { v = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('lp_sid', v); } return v; } catch (e) { return 'na'; } })();
   function track(ev, extra) {
-    if (!CFG.endpoint) return;
+    if (!CFG.endpoint || !CFG.track) return;
     const body = Object.assign({ event: ev, sid: SID, ts: new Date().toISOString(), ref: document.referrer || '', ua: navigator.userAgent }, extra || {});
     try { fetch(CFG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(body), keepalive: true }); } catch (e) {}
   }
