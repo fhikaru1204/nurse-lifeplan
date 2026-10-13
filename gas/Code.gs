@@ -14,6 +14,13 @@ const ADMIN_URL = 'https://plan.alt-llc.jp/admin.html'; // 面談用ページ（
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
+    // 入口の計測（app.js の track）：log シートに 1 行追記して終了（回答ではない）
+    if (body.event) {
+      const ss0 = SpreadsheetApp.openById(SHEET_ID);
+      let lg = ss0.getSheetByName('log'); if (!lg) { lg = ss0.insertSheet('log'); lg.appendRow(['受信日時', 'sid', 'event', 'page', 'pageId', 'referrer', 'UA']); }
+      lg.appendRow([new Date(), String(body.sid || ''), String(body.event), body.page == null ? '' : Number(body.page), String(body.id || ''), String(body.ref || ''), String(body.ua || '')]);
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, logged: true })).setMimeType(ContentService.MimeType.JSON);
+    }
     const a = body.answers || {};
     const c = body.calc || {};
     const ss = SpreadsheetApp.openById(SHEET_ID);
@@ -28,7 +35,7 @@ function doPost(e) {
       '夜勤何歳まで', '何歳まで働く', '転職', '産休育休', '働き方', '介護',
       '借入有無', '借入種類', '借入残高', '月返済', '預貯金', 'その他資産', '資産形成', 'その他内容', '毎月貯金', '保険', '保険料', '不安', '自由記述',
       '老後スタイル', '老後一言', '老後生活費', '連絡方法', '時間帯', '聞きたいこと', '聞きたいこと詳細',
-      '判定', '入るお金', '出ていくお金', '65歳に残る見込', '老後必要額', '差額', 'UA'
+      '判定', '入るお金', '出ていくお金', '65歳に残る見込', '老後必要額', '差額', 'UA', 'sid'
     ];
     if (sh.getLastRow() === 0) sh.appendRow(cols);
     const j = v => Array.isArray(v) ? v.join('、') : (v == null ? '' : v);
@@ -41,7 +48,7 @@ function doPost(e) {
       j(a.nightUntil), j(a.workUntil), j(a.jobChange), j(a.leavePlan), j(a.workStyle), j(a.care),
       j(a.debtHas), j(a.debtType), j(a.debtTotal), j(a.debtMonthly), j(a.savings), j(a.investAssets), j(a.assets), j(a.assetsOther), j(a.savingMonthly), j(a.insurance), j(a.insuranceMonthly), j(a.worries), j(a.worryText),
       j(a.retireStyle), j(a.retireText), j(a.retireLiving), j(a.contact), j(a.slot), j(a.askTopics), j(a.askOther),
-      c.verdict, c.totalIn, c.totalOut, c.at65, c.retireNeed, c.gap, body.ua
+      c.verdict, c.totalIn, c.totalOut, c.at65, c.retireNeed, c.gap, body.ua, String(body.sid || '')
     ];
     // 1人1回の補強：同じ氏名＋生年月日の過去の送信を数える（拒否はせず、通知メールに出す）
     const norm = v => String(v == null ? '' : v).split(' ').join('').split('　').join('');

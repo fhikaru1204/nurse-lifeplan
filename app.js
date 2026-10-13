@@ -379,7 +379,15 @@
   let page = A._locked ? PAGES.length - 1 : Math.min(Number(A._page || 0), PAGES.length - 1);
   const root = document.getElementById('app');
   function maxPage() { return Math.max(page, Number(A._max || 0)); }
-  function goTo(i) { if (A._locked && i !== PAGES.length - 1) return; readForm(); page = i; A._page = page; A._max = Math.max(Number(A._max || 0), page); saveAnswers(); render(); }
+  // 入口の計測（個人情報なし）：開いた／どのページまで進んだ／送信した を GAS の log シートに 1 行ずつ送る
+  const SID = (() => { try { let v = localStorage.getItem('lp_sid'); if (!v) { v = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('lp_sid', v); } return v; } catch (e) { return 'na'; } })();
+  function track(ev, extra) {
+    if (!CFG.endpoint) return;
+    const body = Object.assign({ event: ev, sid: SID, ts: new Date().toISOString(), ref: document.referrer || '', ua: navigator.userAgent }, extra || {});
+    try { fetch(CFG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(body), keepalive: true }); } catch (e) {}
+  }
+
+  function goTo(i) { if (A._locked && i !== PAGES.length - 1) return; readForm(); page = i; A._page = page; A._max = Math.max(Number(A._max || 0), page); saveAnswers(); render(); track('page', { page: page, id: PAGES[page].id }); }
 
   function visibleQuestions(p) { return (p.questions || []).filter(q => !q.showIf || q.showIf(A)); }
 
@@ -476,9 +484,9 @@
     readForm(); saveAnswers(); if (!validate()) return;
     const btn = document.getElementById('btnSend'); btn.disabled = true; btn.textContent = '送信中…';
     const r = calc(A);
-    const payload = { submittedAt: new Date().toISOString(), version: D.version, answers: A, calc: r, ua: navigator.userAgent, page: location.href };
+    const payload = { submittedAt: new Date().toISOString(), version: D.version, sid: SID, answers: A, calc: r, ua: navigator.userAgent, page: location.href };
     const done = () => {
-      A._sent = true; saveAnswers();
+      A._sent = true; saveAnswers(); track('sent', { page: page, id: 'result' });
       root.innerHTML = '<div class="thanks"><h1>ありがとうございました</h1><p>' + esc(A.name || '') + ' さんの内容を受け取りました。結果のくわしい説明と日程のご連絡は、LINEでお送りします。</p>' +
         (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEで友だち追加する</a>' : '') +
         (CFG.lineUrl ? '<div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div><p class="tiny">すでに追加済みの方も、お名前を送っていただけると確実です。</p>' : '') + '</div>';
@@ -489,5 +497,5 @@
       .then(done).catch(() => { btn.disabled = false; btn.textContent = 'もう一度送る'; alert('送信できませんでした。電波の良いところでもう一度お試しください。'); });
   }
 
-  render();
+  render(); track('open', { page: page, id: PAGES[page].id });
 })();
