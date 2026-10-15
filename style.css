@@ -42,7 +42,7 @@ td b { color: var(--deep); }
 .q { background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
 .q.bad { border-color: var(--bad); }
 .q-label { font-weight: 700; color: var(--navy); margin-bottom: 8px; }
-.q-label em { font-style: normal; font-size: 11px; color: #fff; background: var(--sky); border-radius: 8px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; }
+.q-label em { font-style: normal; font-size: 11px; color: #fff; background: var(--sky); border-radius: 8px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; display: inline-block; white-space: nowrap; }
 .q-note { font-size: 12px; color: var(--muted); margin: -4px 0 8px; }
 .opts { display: flex; flex-wrap: wrap; gap: 8px; }
 .opt { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border: 1.5px solid #9fb0c2; border-radius: 22px; background: #fff; cursor: pointer; font-size: 15px; user-select: none; }
@@ -107,6 +107,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--sky); }
 .opt.agree.on .box::after { content: ''; position: absolute; left: 7px; top: 2px; width: 6px; height: 12px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg); }
 .actions { margin-top: 16px; display: flex; }
 .tiny { font-size: 12px; color: var(--muted); text-align: center; }
+.detail .tiny { color: rgba(255,255,255,.92); font-size: 13px; }
+.detail .tiny b { color: #fff; }
 .thanks { text-align: center; padding: 30px 0; }
 .thanks .btn { margin-top: 14px; }
 
