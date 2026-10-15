@@ -17,9 +17,12 @@
   const D = window.LP_DATA;
 
   function ageFrom(dob) { if (!dob) return null; const b = new Date(dob); if (isNaN(b)) return null; const t = new Date(); let a = t.getFullYear() - b.getFullYear(); const m = t.getMonth() - b.getMonth(); if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--; return a; }
-  function kidsNew(a) { return a.childWish === 'yes' ? ({ '1人': 1, '2人': 2, '3人以上': 3 }[a.childNum] || 1) : 0; }
+  // 「未定」は平均的なケースとして計算する（2026-10-15 光さん判断）：結婚したい→4年後・子ども欲しい→1人を5年後・マイホーム買いたい→6年後に3,800万（頭金10%）
+  function undecidedItems(a) { const u = []; if (a && a.marital !== '既婚' && a.marryWish === 'undecided') u.push('結婚'); if (a && a.childWish === 'undecided') u.push('子ども'); if (a && a.homeWish === 'undecided') u.push('マイホーム'); return u; }
+  function norm(a) { if (!a || !undecidedItems(a).length) return a; const b = Object.assign({}, a); if (b.marital !== '既婚' && b.marryWish === 'undecided') b.marryWish = 'yes'; if (b.childWish === 'undecided') b.childWish = 'yes'; if (b.homeWish === 'undecided') b.homeWish = 'yes'; return b; }
+  function kidsNew(a) { a = norm(a); return a.childWish === 'yes' ? ({ '1人': 1, '2人': 2, '3人以上': 3 }[a.childNum] || 1) : 0; }
   function kidsNow(a) { return a.childNow && a.childNow !== 'いない' ? ({ '1人': 1, '2人': 2, '3人以上': 3 }[a.childNow] || 0) : 0; }
-  function isCouple(a) { return a.marital === '既婚' || /^既婚/.test(a.household || '') || a.household === '独身・同棲' || (a.marital !== '既婚' && a.marryWish === 'yes'); }
+  function isCouple(a) { a = norm(a); return a.marital === '既婚' || /^既婚/.test(a.household || '') || a.household === '独身・同棲' || (a.marital !== '既婚' && a.marryWish === 'yes'); }
 
   // 住所の文字列からエリアを判定し、参考表（二人以上・勤労者の大人一人あたり）の値を返す。主要都市 → 都道府県→地方（家計調査の地方区分）。判定できなければ null
   const AREA_CITY = [['東京都区部', /東京都.*区/], ['さいたま市', /さいたま市/], ['千葉市', /千葉市/], ['横浜市', /横浜市/], ['川崎市', /川崎市/], ['相模原市', /相模原市/], ['札幌市', /札幌市/], ['仙台市', /仙台市/], ['名古屋市', /名古屋市/], ['京都市', /京都市/], ['大阪市', /大阪市/], ['神戸市', /神戸市/], ['広島市', /広島市/], ['福岡市', /福岡市/], ['那覇市', /那覇市/]];
@@ -37,6 +40,7 @@
 
   function calc(a, opts) {
     opts = opts || {};
+    const undecided = undecidedItems(a); a = norm(a);
     const age = ageFrom(a.dob) || 30;
     const yearsTo65 = Math.max(0, 65 - age);
     const kNew = kidsNew(a), kNow = kidsNow(a), kids = kNew + kNow;
@@ -248,8 +252,8 @@
     const verdict = gap >= 300 ? 'ok' : gap >= -300 ? 'tight' : 'short';
     const bigHH = marryHH + birthHH + eduTotalHH + homeUpHH + carBuyYears.length * carPrice + Math.round(tripHHPaid) + Math.round(hobbyYear * yearsTo65);
 
-    return { savingYear: savingNow, jobChange, jobYear, jobAssumed, severanceTax, severanceNet, sevMonths, monthlyPay60: Math.round(monthlyPay60 * 10) / 10, sevDeduct, yearsNow, stopAge, fullTime, leaked, keepRate, pensionFull, pensionLevel, livingArea: livingArea ? livingArea.name : null, livingStat: Math.round(livStatYear / 12 * 10) / 10, shareAuto, age, yearsTo65, kids, kNew, couple, shareVal, shareLabel, marryYear, marry, birth, homeUp, oneTime, eduTotalHH, eduPaid, carPaid, tripPaid, hobbyPaid, loanPaid, livingPaid, livingRate, livingNow: living, rentNetYear, incomeNow, netIn, rentIn, incomeLost, now, savedByYear, severance, tenure, debt, totalIn, totalOut, bigPersonal, bigHH, at65raw, at65, investPaid, investValue, pension, living: livingRetire, retireShare, retireNeed, gap, verdict, nightStop, homeYear, childStart, carBuyYears, downPay, loanYearHH, rows };
+    return { undecided, savingYear: savingNow, jobChange, jobYear, jobAssumed, severanceTax, severanceNet, sevMonths, monthlyPay60: Math.round(monthlyPay60 * 10) / 10, sevDeduct, yearsNow, stopAge, fullTime, leaked, keepRate, pensionFull, pensionLevel, livingArea: livingArea ? livingArea.name : null, livingStat: Math.round(livStatYear / 12 * 10) / 10, shareAuto, age, yearsTo65, kids, kNew, couple, shareVal, shareLabel, marryYear, marry, birth, homeUp, oneTime, eduTotalHH, eduPaid, carPaid, tripPaid, hobbyPaid, loanPaid, livingPaid, livingRate, livingNow: living, rentNetYear, incomeNow, netIn, rentIn, incomeLost, now, savedByYear, severance, tenure, debt, totalIn, totalOut, bigPersonal, bigHH, at65raw, at65, investPaid, investValue, pension, living: livingRetire, retireShare, retireNeed, gap, verdict, nightStop, homeYear, childStart, carBuyYears, downPay, loanYearHH, rows };
   }
 
-  window.LP_CALC = { calc, ageFrom, kidsNew, kidsNow, isCouple, statAt, areaFromAddress };
+  window.LP_CALC = { calc, ageFrom, kidsNew, kidsNow, isCouple, statAt, areaFromAddress, undecidedItems };
 })();

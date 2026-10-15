@@ -371,7 +371,7 @@
       '<p class="note">家族全体でこれからかかる大きなお金は約 <b>' + fmt(r.bigHH) + '円</b>（結婚・出産・教育・住まい・車・旅行・趣味の合計）。上の式には、そのうち自分の負担分だけが入っています。</p>' +
       '<div class="timeline">' + tl.map(t => '<span>' + esc(t) + '</span>').join('<i></i>') + '</div>' +
       '<p class="note">' + sevNote + '</p>' +
-      '<p class="note">※ 家計の分担は「' + esc(r.shareLabel) + '」として計算しています。<br>※ 現在ご自身で取り組まれている資産形成（NISA・iDeCo・保険など）の運用による増加分は含まれていません。</p>' +
+      '<p class="note">※ 家計の分担は「' + esc(r.shareLabel) + '」として計算しています。<br>※ 現在ご自身で取り組まれている資産形成（NISA・iDeCo・保険など）の運用による増加分は含まれていません。' + (r.undecided && r.undecided.length ? '<br>※ 「未定」とお答えの' + esc(r.undecided.join('・')) + 'は、平均的なケース（' + r.undecided.map(u => ({ '結婚': '結婚＝4年後に約319万', '子ども': '子ども＝1人を5年後', 'マイホーム': 'マイホーム＝6年後に3,800万・頭金1割' })[u]).join('、') + '）で計算しています。' : '') + '</p>' +
       (/debug/.test(location.search) ? '<div class="ref"><div class="ref-title">内訳（確認用・debug表示）</div>' + table(['項目', '万円'], [
         ['結婚（自己負担＋指輪・旅行・新生活）×分担', fmt(r.marry)], ['出産（' + r.kNew + '人×35）×分担', fmt(r.birth)], ['住まいの頭金（×分担・諸費用8%はローン側）', fmt(r.homeUp)], ['<b>一時支出の合計</b>', '<b>' + fmt(r.oneTime) + '</b>'],
         ['教育費（世帯の総額・0〜2歳の保育料込み・児童手当差引後）', fmt(r.eduTotalHH)], ['→ 65歳までに給料から払う自分の負担', fmt(r.eduPaid)], ['住まいのローン返済（購入年〜65歳）×分担', fmt(r.loanPaid)], ['購入後に消える家賃（年）', fmt(r.rentNetYear)],
