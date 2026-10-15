@@ -148,7 +148,7 @@
       id: 'intro', title: 'はじめに', short: '開始',
       html: '<div class="hero"><p class="lead">看護師さん限定の、ライフプラン試算です。</p>' +
         '<p>結婚・子ども・マイホーム・老後。これから先にいくらかかるかを、看護師の働き方に合わせて見ていきます。<b>ほとんどが選ぶだけ、8分ほど</b>です。</p>' +
-        '<p class="lead-s">お名前などは最後に伺います。途中で閉じても、続きからできます。</p></div>',
+        '<p class="lead-s">途中で閉じても、続きからできます。</p></div>',
       questions: [
         { id: 'agree', type: 'check', label: '確認', required: true, agree: true, options: [{ v: 'yes', l: '<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>を読んで、同意します' }], raw: true, note: '下の四角をタップしてチェックを入れてください' }
       ]
