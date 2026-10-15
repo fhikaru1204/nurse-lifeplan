@@ -58,7 +58,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--sky); }
 
 .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 10px; }
 .btn { border: none; border-radius: 26px; padding: 13px 22px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
-.btn.primary { background: linear-gradient(135deg, var(--deep), var(--sky)); color: #fff; box-shadow: 0 4px 14px rgba(9,132,225,.3); flex: 1; text-align: center; }
+.btn.primary { background: linear-gradient(135deg, var(--deep), var(--sky)); color: #fff; box-shadow: 0 4px 14px rgba(9,132,225,.3); flex: 1; text-align: center; padding: 16px 24px; font-size: 17px; }
 .btn.primary:disabled { opacity: .6; }
 .btn.ghost { background: #fff; color: var(--muted); border: 1.5px solid var(--line); }
 
@@ -101,7 +101,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--sky); }
 .maint p { margin: 4px 0 0; color: var(--muted); }
 .steps [data-go] { cursor: pointer; }
 .steps [data-go]:hover { background: #e8f1fa; }
-.opt.agree { width: 100%; border-radius: 10px; padding: 14px; font-size: 16px; align-items: flex-start; }
+.opt.agree { width: 100%; border-radius: 10px; padding: 18px 16px; font-size: 17px; align-items: flex-start; border-width: 2px; }
 .opt.agree .box { flex: 0 0 auto; width: 24px; height: 24px; border: 2px solid var(--blue); border-radius: 6px; background: #fff; position: relative; margin-top: 1px; }
 .opt.agree.on .box { background: var(--blue); }
 .opt.agree.on .box::after { content: ''; position: absolute; left: 7px; top: 2px; width: 6px; height: 12px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg); }
