@@ -157,6 +157,7 @@
       id: 'you', title: 'お仕事について教えてください', short: '仕事',
       ref: REF.income,
       questions: [
+        { id: 'dob', type: 'date', label: '生年月日', required: true, note: '年齢から、65歳までの年数と退職金・年金の目安を出します' },
         { id: 'employ', type: 'radio', label: '雇用形態', required: true, options: OPT.employ },
         { id: 'years', type: 'radio', label: '今の勤務先での勤続年数', required: true, options: OPT.years },
         { id: 'totalYears', type: 'radio', label: '看護師としての経験年数', required: true, options: OPT.years },
@@ -268,14 +269,12 @@
       ]
     },
     {
-      id: 'about', title: '最後に、あなたのことを教えてください', short: 'お名前',
-      html: '<p class="lead-s">結果の計算（年齢・お住まいの地域）と、ご連絡に使います。ここまでの回答は保存されています。</p>',
+      id: 'about', title: '最後に、お名前だけ教えてください', short: 'お名前',
+      html: '<p class="lead-s">結果のご連絡に使います。<b>勤務先は空欄でも結果は出ます。</b>ここまでの回答は保存されています。</p>',
       questions: [
         { id: 'name', type: 'text', label: 'お名前', required: true, ph: '例：山田 花子' },
-        { id: 'dob', type: 'date', label: '生年月日', required: true, note: '年齢から、65歳までの年数と退職金・年金の目安を出します' },
-        { id: 'address', type: 'text', label: 'お住まいの市区町村', note: '市区町村までで大丈夫です。地域の生活費の目安に使います', required: true, ph: '例：東京都台東区' },
-        { id: 'employer', type: 'text', label: '勤務先名', required: true, ph: '例：○○総合病院' },
-        { id: 'employerAddr', type: 'text', label: '勤務先の住所', ph: '市区町村までで大丈夫です' }
+        { id: 'address', type: 'text', label: 'お住まいの都道府県', note: '都道府県だけで大丈夫です。地域の生活費の目安に使います', required: true, ph: '例：東京都' },
+        { id: 'employer', type: 'text', label: '勤務先名（任意）', ph: '例：○○総合病院' }
       ]
     },
     { id: 'result', title: '結果', short: '結果', isResult: true, questions: [
