@@ -277,12 +277,7 @@
         { id: 'employer', type: 'text', label: '勤務先名（任意）', ph: '例：○○総合病院' }
       ]
     },
-    { id: 'result', title: '結果', short: '結果', isResult: true, questions: [
-        { id: 'contact', type: 'radio', label: 'この結果のくわしい説明（面談）を希望しますか', required: true, options: OPT.contact },
-        { id: 'slot', type: 'check', label: '都合のいい時間帯（あてはまるもの全部）', required: true, options: OPT.slot, showIf: a => a.contact && a.contact !== '今は希望しない' },
-        { id: 'askTopics', type: 'check', label: '面談で聞きたいこと（あてはまるもの全部）', note: '選んでおくと、その話から始められます', options: OPT.askTopics, showIf: a => a.contact && a.contact !== '今は希望しない' },
-        { id: 'askOther', type: 'textarea', label: '聞きたいことを具体的に（あれば）', ph: '例：家を買うなら今か、もう少し待つか', showIf: a => a.contact && a.contact !== '今は希望しない' && Array.isArray(a.askTopics) && a.askTopics.length > 0 }
-      ] }
+    { id: 'result', title: '結果', short: '結果', isResult: true, questions: [] }
   ];
 
   // ---------- 簡易試算 ----------
@@ -316,6 +311,7 @@
   }
 
   function renderResult() {
+    const bandText = m => { m = Math.max(0, Math.round(m)); if (m >= 1000) return Math.floor(m / 1000).toLocaleString() + ',000万円台'; if (m >= 100) return Math.floor(m / 100) + '00万円台'; return '数十万円'; };
     const r = calc(A);
     const v = { ok: ['余裕がありそう', 'このペースなら、老後に自分で用意する分まで届きそうです。ただし途中の働き方の変化は入っていません。'],
       tight: ['ぎりぎり', '65歳に残る見込みと、老後に用意したい額がほぼ同じです。少しの変化で足りなくなります。'],
@@ -323,13 +319,12 @@
     if (!A._sent) {
       // 送信前：判定だけ見せて、数字・内訳・希望を変えた場合は送信後に表示する
       return '<div class="result">' +
-        '<div class="verdict ' + r.verdict + '"><div class="v-label">今のままだと</div><div class="v-main">' + (r.verdict === 'short' ? '老後に向けて、<br><span class="nowrap">足りない計算です</span>' : v[0]) + '</div><p>' + v[1] + '</p></div>' +
+        '<div class="verdict ' + r.verdict + '"><div class="v-label">今のままだと</div><div class="v-main">' + (r.verdict === 'short' ? '老後に向けて、<br><span class="nowrap">あと' + bandText(-r.gap) + '</span>' : v[0]) + '</div><p>' + v[1] + (r.verdict === 'short' ? ' くわしい金額は送信後に表示されます。' : '') + '</p></div>' +
         '<div class="detail"><div class="d-title">送信すると、くわしい数字が表示されます</div>' +
         '<ul><li>あと何万円足りないか（65歳までの収入と支出の内訳）</li><li>老後に自分で用意したい目安（年金の目安つき）</li><li>希望を一つ変えると、不足がいくら減るか</li></ul>' +
         '<p class="tiny">送信先は担当（藤田）だけです。面談を希望しない場合も、数字は表示されます。</p></div>' +
-        '<form id="f" autocomplete="on">' + visibleQuestions(PAGES[page]).map(renderQuestion).join('') + '</form>' +
-        '<div class="actions"><button class="btn primary" id="btnSend">' + (A.contact === '今は希望しない' ? '送信して、数字を見る' : '送信して、数字を見る（面談も申し込む）') + '</button></div>' +
-        '<p class="tiny">送信後、LINE の友だち追加をお願いします。担当（藤田）からLINEで' + (A.contact === '今は希望しない' ? 'ひとことご連絡します。面談はいつでも申し込めます。' : '日程のご連絡をします。') + '看護師さん限定です。</p>' +
+        '<div class="actions"><button class="btn primary" id="btnSend">送信して、くわしい数字を見る</button></div>' +
+        '<p class="tiny">送信後、LINE の友だち追加をお願いします。面談を希望する方は、LINE で「面談希望」とひとこと送ってください。看護師さん限定です。</p>' +
         '</div>';
     }
     const tl = [];
@@ -355,7 +350,7 @@
     const sub = (label, val) => '<div class="eq-sub"><span>' + label + '</span><span>' + val + '</span></div>';
     return '<div class="result">' +
       '<div class="verdict ' + r.verdict + '"><div class="v-label">今のままだと</div><div class="v-main">' + v[0] + '</div><p>' + v[1] + '</p></div>' +
-      '<div class="detail sent-box"><div class="d-title">送信ありがとうございました</div><p>この数字をもとに、担当（藤田）からLINEでご連絡します。友だち追加がまだの方は、下のボタンから追加してください。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEで友だち追加する</a><div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div>' : '') + '</div>' +
+      '<div class="detail sent-box"><div class="d-title">送信ありがとうございました</div><p>この数字をもとに、担当（藤田）からLINEでご連絡します。友だち追加がまだの方は、下のボタンから追加してください。面談（Zoom か対面・無料）を希望する方は、追加のあと「面談希望」とひとこと送ってください。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEで友だち追加する</a><div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div>' : '') + '</div>' +
       '<div class="eq">' +
       row('65歳までに入るお金', fmt(r.totalIn) + '円', 'in') +
       sub('手取りの合計（昇給・夜勤離脱・時短を反映）', fmt(r.netIn) + '円') + sub('今の預貯金と資産', fmt(r.now) + '円') + sub('退職金の目安（税引後' + (r.severanceTax ? '・額面' + fmt(r.severance) + '−税' + fmt(r.severanceTax) : '・控除内で税0') + '）', fmt(r.severanceNet) + '円') +
@@ -494,7 +489,7 @@
 
   // ---------- 送信 ----------
   function send() {
-    readForm(); saveAnswers(); if (!validate()) return;
+    readForm(); if (!A.contact) A.contact = 'LINEで確認'; saveAnswers(); if (!validate()) return;
     const btn = document.getElementById('btnSend'); btn.disabled = true; btn.textContent = '送信中…';
     const r = calc(A);
     const payload = { submittedAt: new Date().toISOString(), version: D.version, sid: SID, answers: A, calc: r, ua: navigator.userAgent, page: location.href };
