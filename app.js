@@ -270,7 +270,7 @@
     },
     {
       id: 'about', title: '最後に、お名前だけ教えてください', short: 'お名前',
-      html: '<p class="lead-s">結果のご連絡に使います。<b>勤務先は空欄でも結果は出ます。</b>ここまでの回答は保存されています。</p>',
+      html: '<p class="lead-s">「結果を見る」を押すと、回答と結果が担当（藤田）に届き、同時に画面に数字が表示されます。<b>勤務先は空欄でも結果は出ます。</b></p>',
       questions: [
         { id: 'name', type: 'text', label: 'お名前', required: true, ph: '例：山田 花子' },
         { id: 'address', type: 'text', label: 'お住まいの都道府県', note: '都道府県だけで大丈夫です。地域の生活費の目安に使います', required: true, ph: '例：東京都' },
@@ -316,17 +316,6 @@
     const v = { ok: ['余裕がありそう', 'このペースなら、老後に自分で用意する分まで届きそうです。ただし途中の働き方の変化は入っていません。'],
       tight: ['ぎりぎり', '65歳に残る見込みと、老後に用意したい額がほぼ同じです。少しの変化で足りなくなります。'],
       short: ['老後に向けて、<br><span class="nowrap">あと' + fmt(-r.gap) + '円</span>', '今のペースだと、65歳の時点で老後に用意したい額に届かない計算です。'] }[r.verdict];
-    if (!A._sent) {
-      // 送信前：判定だけ見せて、数字・内訳・希望を変えた場合は送信後に表示する
-      return '<div class="result">' +
-        '<div class="verdict ' + r.verdict + '"><div class="v-label">今のままだと</div><div class="v-main">' + (r.verdict === 'short' ? '老後に向けて、<br><span class="nowrap">あと' + bandText(-r.gap) + '</span>' : v[0]) + '</div><p>' + v[1] + (r.verdict === 'short' ? ' くわしい金額は送信後に表示されます。' : '') + '</p></div>' +
-        '<div class="detail"><div class="d-title">送信すると、くわしい数字が表示されます</div>' +
-        '<ul><li>あと何万円足りないか（65歳までの収入と支出の内訳）</li><li>老後に自分で用意したい目安（年金の目安つき）</li><li>希望を一つ変えると、不足がいくら減るか</li></ul>' +
-        '<p class="tiny">送信先は担当（藤田）だけです。面談を希望しない場合も、数字は表示されます。</p></div>' +
-        '<div class="actions"><button class="btn primary" id="btnSend">送信して、くわしい数字を見る</button></div>' +
-        '<p class="tiny">送信後、LINE の友だち追加をお願いします。面談を希望する方は、LINE で「面談希望」とひとこと送ってください。看護師さん限定です。</p>' +
-        '</div>';
-    }
     const tl = [];
     if (r.marry) tl.push('結婚');
     if (r.birth) tl.push('出産');
@@ -350,7 +339,7 @@
     const sub = (label, val) => '<div class="eq-sub"><span>' + label + '</span><span>' + val + '</span></div>';
     return '<div class="result">' +
       '<div class="verdict ' + r.verdict + '"><div class="v-label">今のままだと</div><div class="v-main">' + v[0] + '</div><p>' + v[1] + '</p></div>' +
-      '<div class="detail sent-box"><div class="d-title">送信ありがとうございました</div><p>この数字をもとに、担当（藤田）からLINEでご連絡します。友だち追加がまだの方は、下のボタンから追加してください。面談（Zoom か対面・無料）を希望する方は、追加のあと「面談希望」とひとこと送ってください。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEで友だち追加する</a><div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div>' : '') + '</div>' +
+      '<div class="detail sent-box"><div class="d-title">この結果は、担当（藤田）にも届いています</div><p>くわしい説明を聞きたい方は、下のボタンから LINE を友だち追加して、お名前をひとこと送ってください。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、このままで大丈夫です。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEで友だち追加する</a><div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div>' : '') + '</div>' +
       '<div class="eq">' +
       row('65歳までに入るお金', fmt(r.totalIn) + '円', 'in') +
       sub('手取りの合計（昇給・夜勤離脱・時短を反映）', fmt(r.netIn) + '円') + sub('今の預貯金と資産', fmt(r.now) + '円') + sub('退職金の目安（税引後' + (r.severanceTax ? '・額面' + fmt(r.severance) + '−税' + fmt(r.severanceTax) : '・控除内で税0') + '）', fmt(r.severanceNet) + '円') +
@@ -421,6 +410,7 @@
     const y = keepScroll ? window.scrollY : 0;
     const p = PAGES[page];
     if (p.isResult && !A._locked) { A._locked = true; saveAnswers(); } // 1人1回：結果を一度見たら、この端末では回答を変えられない
+    if (p.isResult && !A._sent) { sendResult(); } // 「結果を見る」＝送信（2026-10-21）：結果ページに着いた時点で担当へ送り、数字は全部表示する
     const pct = Math.round(page / (PAGES.length - 1) * 100);
     let html = '<div class="progress"><div class="bar" style="width:' + pct + '%"></div></div>' +
       '<div class="steps">' + PAGES.map((x, i) => { const reach = i <= maxPage(); return '<span class="' + (i === page ? 'cur' : reach ? 'done' : '') + '"' + (reach && i !== page && !A._locked ? ' data-go="' + i + '" role="button"' : '') + '>' + esc(x.short) + '</span>'; }).join('') + '</div>' +
@@ -488,6 +478,15 @@
   function next() { readForm(); if (!validate()) return; goTo(page + 1); }
 
   // ---------- 送信 ----------
+  function sendResult() {
+    if (!A.contact) A.contact = 'LINEで確認';
+    A._sent = true; saveAnswers(); track('sent', { page: page, id: 'result' });
+    const r = calc(A);
+    const payload = { submittedAt: new Date().toISOString(), version: D.version, sid: SID, answers: A, calc: r, ua: navigator.userAgent, page: location.href };
+    if (!CFG.endpoint) { console.warn('endpoint未設定'); return; }
+    const post = () => fetch(CFG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+    post().catch(() => { setTimeout(() => { post().catch(() => {}); }, 3000); });
+  }
   function send() {
     readForm(); if (!A.contact) A.contact = 'LINEで確認'; saveAnswers(); if (!validate()) return;
     const btn = document.getElementById('btnSend'); btn.disabled = true; btn.textContent = '送信中…';
