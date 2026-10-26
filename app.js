@@ -289,6 +289,23 @@
   const hasInvest = a => (a.assets || []).some(x => INVEST_KINDS.indexOf(x) >= 0);  // 残高を聞くべき資産形成を選んでいるか
 
   // 希望を一つ変えたらどうなるか（判定が ok 以外のときだけ・収入側の変化は面談で見せる）
+  // ---------- LINE に来る理由（回答内容で出し分け・2026-10-26） ----------
+  // 優先：夜勤あり → 転職予定あり/考え中 → 子あり(22歳以下)か子ども希望 → それ以外。LINE のメニュー「試算済みの方こちら」→ フルネーム送信の流れに合わせる
+  function lineHook(a) {
+    const kidsYoung = [a.childAge1, a.childAge2, a.childAge3].some(x => x !== undefined && x !== "" && Number(x) <= 22);
+    if (a.nightUntil && a.nightUntil !== "もう夜勤はしていない") return { t: "夜勤を外れたあとの手取りで組み直した数字を、LINE でお送りします", b: "上の数字は、夜勤を続ける前提です。夜勤を今やめた場合に、65歳に残る見込みがいくら変わるか。回答いただいた内容で組み直して、お返しします。" };
+    if (a.jobChange === "予定あり（1年以内）" || a.jobChange === "考え中") return { t: "転職先が公立・民間・クリニックのどれかで、退職金と65歳の残りがいくら変わるかを、LINE でお送りします", b: "退職金は転職先の種類で相場が大きく違います。3つの場合で組み直した数字を、お返しします。" };
+    if (kidsYoung || a.childWish === "yes") return { t: "お子さんの進路（公立・私立、自宅・下宿）ごとの教育費と、65歳の残りを LINE でお送りします", b: "上の数字は、進路のご回答どおりの前提です。進路を変えた場合に、65歳に残る見込みがいくら変わるか。組み直してお返しします。" };
+    return { t: "65歳までの、年ごとの収入と支出の表を LINE でお送りします", b: "上の数字は合計です。何歳のときに貯金が増えて、何歳で減るのか。年ごとの表にして、お返しします。" };
+  }
+  function lineBox(a) {
+    const h = lineHook(a);
+    return "<div class=\"detail sent-box\"><div class=\"d-title\">" + esc(h.t) + "</div><p>" + esc(h.b) + "</p>" +
+      "<p class=\"tiny\">この結果は、担当（藤田）にも届いています。</p>" +
+      (CFG.lineUrl ? "<a class=\"btn primary\" href=\"" + esc(CFG.lineUrl) + "\">LINEで友だち追加する</a><div class=\"must\"><b>友だち追加のあと、メニューの「試算済みの方こちら」を押して、試算で入力したお名前（フルネーム）を送ってください</b><span>担当が照合して、当日〜翌日にお返しします。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、数字だけ受け取って大丈夫です。</span></div>" : "") +
+      "</div>";
+  }
+
   function whatIf(r) {
     if (r.verdict === 'ok') return '';
     const step = (arr, v) => { const i = arr.indexOf(v); return i > 0 ? arr[i - 1] : null; };
@@ -339,7 +356,7 @@
     const sub = (label, val) => '<div class="eq-sub"><span>' + label + '</span><span>' + val + '</span></div>';
     return '<div class="result">' +
       '<div class="verdict ' + r.verdict + '"><div class="v-label">今のままだと</div><div class="v-main">' + v[0] + '</div><p>' + v[1] + '</p></div>' +
-      '<div class="detail sent-box"><div class="d-title">この結果は、担当（藤田）にも届いています</div><p>くわしい説明を聞きたい方は、下のボタンから LINE を友だち追加して、お名前をひとこと送ってください。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、このままで大丈夫です。</p>' + (CFG.lineUrl ? '<a class="btn primary" href="' + esc(CFG.lineUrl) + '">LINEで友だち追加する</a><div class="must"><b>友だち追加のあと、お名前をひとこと送ってください</b><span>どなたの試算か分かるようにするためです</span></div>' : '') + '</div>' +
+      lineBox(A) +
       '<div class="eq">' +
       row('65歳までに入るお金', fmt(r.totalIn) + '円', 'in') +
       sub('手取りの合計（昇給・夜勤離脱・時短を反映）', fmt(r.netIn) + '円') + sub('今の預貯金と資産', fmt(r.now) + '円') + sub('退職金の目安（税引後' + (r.severanceTax ? '・額面' + fmt(r.severance) + '−税' + fmt(r.severanceTax) : '・控除内で税0') + '）', fmt(r.severanceNet) + '円') +
