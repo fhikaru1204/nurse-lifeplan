@@ -434,8 +434,8 @@
       html += '<p class="tiny lock-note">結果を表示したあとは、回答の変更・やり直しはできません。条件を変えた場合の試算（夜勤をやめたら・時短にしたら 等）は、面談でお見せします。</p>';
     } else {
       if (p.html) html += p.html;
-      if (p.ref) html += p.ref();
       html += '<form id="f" autocomplete="on">' + visibleQuestions(p).map(renderQuestion).join('') + '</form>';
+      if (p.ref) html += p.ref(); // 2026-10-29：参考表は設問の下（スマホで最初の画面が表にならないように）
       html += '<div class="nav">' + (page > 0 ? '<button class="btn ghost" id="btnBack">戻る</button>' : '<span></span>') +
         '<button class="btn primary" id="btnNext">' + (page === PAGES.length - 2 ? '結果を見る' : '次へ') + '</button></div>';
     }
