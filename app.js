@@ -8,6 +8,8 @@
   // ?reset=1 で、この端末に保存された回答と面談ページの残した条件を全部消して最初から
   if (/reset/.test(location.search)) { try { Object.keys(localStorage).filter(k => k === STORE_KEY || k.indexOf('lp_patterns_') === 0).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.replace(location.pathname); }
   const A = loadAnswers();
+  // 2026-10-29：intro ページ廃止に伴い、以前に途中まで進んだ端末のページ番号を 1 つ繰り下げる（1回だけ）
+  if (!A._noIntro) { if (Number(A._page || 0) > 0) A._page = Number(A._page) - 1; if (Number(A._max || 0) > 0) A._max = Number(A._max) - 1; A._noIntro = 1; try { localStorage.setItem(STORE_KEY, JSON.stringify(A)); } catch (e) {} }
   // ?unlock=1：回答は残したまま、結果表示後のロックと送信済みフラグだけ外す（社内用・Zoomで一緒に入力して直したいとき）
   if (/unlock/.test(location.search)) { delete A._locked; delete A._sent; A._page = Math.max(0, Number(A._page || 0) - 1); try { localStorage.setItem(STORE_KEY, JSON.stringify(A)); } catch (e) {} location.replace(location.pathname); }
 
@@ -145,16 +147,9 @@
   // ---------- ページ定義 ----------
   const PAGES = [
     {
-      id: 'intro', title: 'はじめに', short: '開始',
-      html: '<div class="hero"><p class="lead">看護師さん限定の、ライフプラン試算です。</p>' +
-        '<p>結婚・子ども・マイホーム・老後。これから先にいくらかかるかを、看護師の働き方に合わせて見ていきます。<b>ほとんどが選ぶだけ、8分ほど</b>です。</p>' +
-        '<p class="lead-s">途中で閉じても、続きからできます。</p></div>',
-      questions: [
-        { id: 'agree', type: 'check', label: '確認', required: true, agree: true, options: [{ v: 'yes', l: '<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>を読んで、同意します' }], raw: true, note: '下の四角をタップしてチェックを入れてください' }
-      ]
-    },
-    {
       id: 'you', title: 'お仕事について教えてください', short: '仕事',
+      // 2026-10-29：「はじめに」ページを廃止（開いた人の7割が0秒で離脱）。リードと同意はこのページに置く
+      html: '<p class="lead-s">看護師さん限定のライフプラン試算。<b>ほとんどが選ぶだけ、8分ほど</b>。途中で閉じても、続きからできます。</p>',
       ref: REF.income,
       questions: [
         { id: 'dob', type: 'date', label: '生年月日', required: true, note: '年齢から、65歳までの年数と退職金・年金の目安を出します' },
@@ -169,6 +164,8 @@
         { id: 'housingCost', type: 'number', label: '家賃 または 住宅ローンの返済額（月）', required: true, unit: '万円', showIf: a => a.housing === '賃貸' || a.housing === '持ち家（ローンあり）' || a.housing === '社宅・寮' },
         { id: 'subsidy', type: 'radio', label: '家賃補助・住宅手当', required: true, options: OPT.subsidy },
         { id: 'household', type: 'radio', label: '世帯の状況', required: true, options: OPT.household }
+        ,
+        { id: 'agree', type: 'check', label: '確認', required: true, agree: true, options: [{ v: 'yes', l: '<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>を読んで、同意します' }], raw: true, note: '下の四角をタップしてチェックを入れてください' }
       ]
     },
     {
