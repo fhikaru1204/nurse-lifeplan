@@ -148,7 +148,7 @@
   const PAGES = [
     {
       id: 'you', title: 'お仕事について教えてください', short: '仕事',
-      // 2026-10-29：「はじめに」ページを廃止（開いた人の7割が0秒で離脱）。リードと同意はこのページに置く
+      // 2026-10-29：「はじめに」ページを廃止（開いた人の7割が0秒で離脱）。リードはここ、同意は送信直前（お名前ページ末尾）
       html: '<p class="lead-s">看護師さん限定のライフプラン試算。<b>ほとんどが選ぶだけ、8分ほど</b>。途中で閉じても、続きからできます。</p>',
       ref: REF.income,
       questions: [
@@ -164,8 +164,6 @@
         { id: 'housingCost', type: 'number', label: '家賃 または 住宅ローンの返済額（月）', required: true, unit: '万円', showIf: a => a.housing === '賃貸' || a.housing === '持ち家（ローンあり）' || a.housing === '社宅・寮' },
         { id: 'subsidy', type: 'radio', label: '家賃補助・住宅手当', required: true, options: OPT.subsidy },
         { id: 'household', type: 'radio', label: '世帯の状況', required: true, options: OPT.household }
-        ,
-        { id: 'agree', type: 'check', label: '確認', required: true, agree: true, options: [{ v: 'yes', l: '<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>を読んで、同意します' }], raw: true, note: '下の四角をタップしてチェックを入れてください' }
       ]
     },
     {
@@ -271,7 +269,8 @@
       questions: [
         { id: 'name', type: 'text', label: 'お名前', required: true, ph: '例：山田 花子' },
         { id: 'address', type: 'text', label: 'お住まいの都道府県', note: '都道府県だけで大丈夫です。地域の生活費の目安に使います', required: true, ph: '例：東京都' },
-        { id: 'employer', type: 'text', label: '勤務先名（任意）', ph: '例：○○総合病院' }
+        { id: 'employer', type: 'text', label: '勤務先名（任意）', ph: '例：○○総合病院' },
+        { id: 'agree', type: 'check', label: '確認', required: true, agree: true, options: [{ v: 'yes', l: '<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>を読んで、同意します' }], raw: true, note: '「結果を見る」で回答が担当に送られます。下の四角をタップしてチェックを入れてください' }
       ]
     },
     { id: 'result', title: '結果', short: '結果', isResult: true, questions: [] }

@@ -125,3 +125,11 @@ footer a { color: #8a94a0; }
 .must b{display:block;font-size:16px;font-weight:800}
 .must span{display:block;margin-top:2px;font-size:12.5px;font-weight:500;color:#6b5600}
 .sent-box .must{margin-left:0;margin-right:0}
+
+/* 2026-10-29：上のヘッダーを廃止し、ロゴ・名称・社名はフッターへ（開いてすぐ社名が出ないように） */
+footer.site { text-align: center; padding: 28px 18px 32px; }
+footer.site .brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; color: #4a5560; }
+footer.site .brand img { width: 36px; height: 36px; border-radius: 50%; background: #fff; padding: 2px; border: 1px solid #e3e8ee; }
+footer.site .brand .t { font-weight: 700; font-size: 13px; text-align: left; }
+footer.site .brand .s { font-size: 11px; color: #8a94a0; text-align: left; }
+footer.site .legal { font-size: 11px; color: #8a94a0; }
