@@ -8,6 +8,8 @@
   // ?reset=1 で、この端末に保存された回答と面談ページの残した条件を全部消して最初から
   if (/reset/.test(location.search)) { try { Object.keys(localStorage).filter(k => k === STORE_KEY || k.indexOf('lp_patterns_') === 0).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.replace(location.pathname); }
   const A = loadAnswers();
+  // 2026-10-29：同意は保存データから引き継がない（結果表示前なら毎回未チェックで始め、本人にチェックを入れてもらう）
+  if (!A._locked) delete A.agree;
   // 2026-10-29：intro ページ廃止に伴い、以前に途中まで進んだ端末のページ番号を 1 つ繰り下げる（1回だけ）
   if (!A._noIntro) { if (Number(A._page || 0) > 0) A._page = Number(A._page) - 1; if (Number(A._max || 0) > 0) A._max = Number(A._max) - 1; A._noIntro = 1; try { localStorage.setItem(STORE_KEY, JSON.stringify(A)); } catch (e) {} }
   // ?unlock=1：回答は残したまま、結果表示後のロックと送信済みフラグだけ外す（社内用・Zoomで一緒に入力して直したいとき）
