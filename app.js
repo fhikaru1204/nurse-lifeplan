@@ -300,7 +300,7 @@
     const h = lineHook(a);
     return "<div class=\"detail sent-box\"><div class=\"d-title\">" + esc(h.t) + "</div><p>" + esc(h.b) + "</p>" +
       "<p class=\"tiny\">この結果は、担当（藤田）にも届いています。</p>" +
-      (CFG.lineUrl ? "<a class=\"btn primary\" href=\"" + esc(CFG.lineUrl) + "\">LINEで友だち追加する</a>" +
+      (CFG.lineUrl ? "<a class=\"line-add\" href=\"" + esc(CFG.lineUrl) + "\"><img src=\"https://scdn.line-apps.com/n/line_add_friends/btn/ja.png\" alt=\"LINEで友だち追加\" height=\"48\"></a>" +
       // 2026-10-31（光さん）：LINE 追加で再試算できる旨を 1 行。コードは公式 LINE のあいさつメッセージで渡す（固定・config.retryCode）
       "<p class=\"retry-note\">LINE追加で条件を変えて再試算も可能です。<a href=\"#\" id=\"retryOpen\">コードをお持ちの方はこちら</a></p>" +
       "<div class=\"retry-form\" id=\"retryForm\" hidden><input type=\"text\" id=\"retryCode\" inputmode=\"numeric\" maxlength=\"8\" placeholder=\"再試算コード\" autocomplete=\"off\"><button class=\"btn\" id=\"retryGo\" type=\"button\">やり直す</button><div class=\"err\" id=\"retryErr\"></div></div>" +
