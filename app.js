@@ -300,8 +300,22 @@
     const h = lineHook(a);
     return "<div class=\"detail sent-box\"><div class=\"d-title\">" + esc(h.t) + "</div><p>" + esc(h.b) + "</p>" +
       "<p class=\"tiny\">この結果は、担当（藤田）にも届いています。</p>" +
-      (CFG.lineUrl ? "<a class=\"btn primary\" href=\"" + esc(CFG.lineUrl) + "\">LINEで友だち追加する</a><div class=\"must\"><b>友だち追加のあと、メニューの「試算済みの方こちら」を押して、試算で入力したお名前（フルネーム）を送ってください</b><span>担当が照合して、当日〜翌日にお返しします。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、数字だけ受け取って大丈夫です。</span></div>" : "") +
-      "</div>";
+      (CFG.lineUrl ? "<a class=\"btn primary\" href=\"" + esc(CFG.lineUrl) + "\">LINEで友だち追加する</a>" +
+      // 2026-10-31（光さん）：LINE 追加で再試算できる旨を 1 行。コードは公式 LINE のあいさつメッセージで渡す（固定・config.retryCode）
+      "<p class=\"retry-note\">LINE追加で条件を変えて再試算も可能です。<a href=\"#\" id=\"retryOpen\">コードをお持ちの方はこちら</a></p>" +
+      "<div class=\"retry-form\" id=\"retryForm\" hidden><input type=\"text\" id=\"retryCode\" inputmode=\"numeric\" maxlength=\"8\" placeholder=\"再試算コード\" autocomplete=\"off\"><button class=\"btn\" id=\"retryGo\" type=\"button\">やり直す</button><div class=\"err\" id=\"retryErr\"></div></div>" +
+      "<div class=\"must\"><b>友だち追加のあと、メニューの「試算済みの方こちら」を押して、試算で入力したお名前（フルネーム）を送ってください</b><span>担当が照合して、当日〜翌日にお返しします。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、数字だけ受け取って大丈夫です。</span></div>" : "") +
+      "</div>" + contactBox();
+  }
+  // 2026-10-31（光さん）：任意の連絡先（電話・メール）。自分から LINE を追加しない人向けに、藤田から連絡する受け身の入口
+  function contactBox() {
+    if (A._contactSent) return '<div class="contact-box sent"><div class="c-title">ご連絡先を受け付けました</div><p class="c-note">※藤田からご連絡させていただきます。</p></div>';
+    return '<div class="contact-box"><div class="c-title">ご連絡先（任意）</div>' +
+      '<div class="inp"><input type="tel" id="cPhone" name="phone" inputmode="tel" autocomplete="tel" placeholder="電話番号" value="' + esc(A.phone || '') + '"></div>' +
+      '<div class="inp"><input type="email" id="cEmail" name="email" inputmode="email" autocomplete="email" placeholder="メールアドレス" value="' + esc(A.email || '') + '"></div>' +
+      '<div class="err" id="cErr"></div>' +
+      '<button class="btn primary" id="cSend" type="button">連絡先を送る</button>' +
+      '<p class="c-note">※ご連絡先をご記入いただいた場合は藤田からご連絡させていただきます。</p></div>';
   }
 
   function whatIf(r) {
@@ -432,7 +446,7 @@
       '<h1>' + esc(p.title) + '</h1>';
     if (p.isResult) {
       html += renderResult();
-      html += '<p class="tiny lock-note">結果を表示したあとは、回答の変更・やり直しはできません。条件を変えた場合の試算（夜勤をやめたら・時短にしたら 等）は、面談でお見せします。</p>';
+      html += '<p class="tiny lock-note">結果を表示したあとは、この画面では回答を変えられません。条件を変えて試算し直したい方は、LINE 追加のあと届くコードで何度でもやり直せます。</p>';
     } else {
       if (p.html) html += p.html;
       html += '<form id="f" autocomplete="on">' + visibleQuestions(p).map(renderQuestion).join('') + '</form>';
@@ -488,6 +502,35 @@
     const n = document.getElementById('btnNext'); if (n) n.onclick = next;
     root.querySelectorAll('.steps [data-go]').forEach(s => { s.onclick = () => goTo(Number(s.getAttribute('data-go'))); });
     const s = document.getElementById('btnSend'); if (s) s.onclick = send;
+    const ro = document.getElementById('retryOpen'); if (ro) ro.onclick = ev => { ev.preventDefault(); const f = document.getElementById('retryForm'); f.hidden = !f.hidden; if (!f.hidden) document.getElementById('retryCode').focus(); };
+    const rg = document.getElementById('retryGo'); if (rg) rg.onclick = retry;
+    const rc = document.getElementById('retryCode'); if (rc) rc.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); retry(); } };
+    const cs = document.getElementById('cSend'); if (cs) cs.onclick = sendContact;
+  }
+
+  // 再試算（2026-10-31）：公式 LINE のあいさつメッセージで渡す固定コードが合えば、回答を残したままロックと送信済みを外して最初の設問へ。同意は入れ直してもらう
+  function retry() {
+    const el = document.getElementById('retryCode'), err = document.getElementById('retryErr');
+    const v = (el.value || '').replace(/[^0-9]/g, '');
+    if (!CFG.retryCode || v !== String(CFG.retryCode)) { err.textContent = 'コードが違います。LINE のあいさつメッセージに書かれた数字を入れてください'; return; }
+    A._retry = Number(A._retry || 0) + 1; delete A._locked; delete A._sent; delete A.agree; A._page = 0; saveAnswers();
+    track('retry', { page: page, id: 'result' });
+    page = 0; render(); window.scrollTo(0, 0);
+  }
+
+  // 任意の連絡先（2026-10-31）：結果ページから別送。GAS は sid で同じ回答行の「電話」「メール」列を埋める
+  function sendContact() {
+    const ph = (document.getElementById('cPhone').value || '').trim(), em = (document.getElementById('cEmail').value || '').trim(), err = document.getElementById('cErr');
+    if (!ph && !em) { err.textContent = '電話番号かメールアドレスのどちらかを入れてください'; return; }
+    if (ph && !/^[0-9０-９+() -]{10,16}$/.test(ph)) { err.textContent = '電話番号の形式をご確認ください'; return; }
+    if (em && !/^[^@ ]+@[^@ ]+[.][^@ ]+$/.test(em)) { err.textContent = 'メールアドレスの形式をご確認ください'; return; }
+    err.textContent = ''; A.phone = ph; A.email = em; saveAnswers();
+    const btn = document.getElementById('cSend'); btn.disabled = true; btn.textContent = '送信中…';
+    const payload = { kind: 'contact', sid: SID, name: A.name || '', phone: ph, email: em, submittedAt: new Date().toISOString(), ua: navigator.userAgent };
+    const done = () => { A._contactSent = true; saveAnswers(); track('contact', { page: page, id: 'result' }); render(true); };
+    if (!CFG.endpoint) { console.warn('endpoint未設定'); setTimeout(done, 400); return; }
+    fetch(CFG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) })
+      .then(done).catch(() => { btn.disabled = false; btn.textContent = 'もう一度送る'; err.textContent = '送信できませんでした。電波の良いところでもう一度お試しください'; });
   }
 
   function next() { readForm(); if (!validate()) return; goTo(page + 1); }
@@ -497,7 +540,7 @@
     if (!A.contact) A.contact = 'LINEで確認';
     A._sent = true; saveAnswers(); track('sent', { page: page, id: 'result' });
     const r = calc(A);
-    const payload = { submittedAt: new Date().toISOString(), version: D.version, sid: SID, answers: A, calc: r, ua: navigator.userAgent, page: location.href };
+    const payload = { submittedAt: new Date().toISOString(), version: D.version, sid: SID, answers: A, calc: r, retry: Number(A._retry || 0), ua: navigator.userAgent, page: location.href };
     if (!CFG.endpoint) { console.warn('endpoint未設定'); return; }
     const post = () => fetch(CFG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
     post().catch(() => { setTimeout(() => { post().catch(() => {}); }, 3000); });
@@ -506,7 +549,7 @@
     readForm(); if (!A.contact) A.contact = 'LINEで確認'; saveAnswers(); if (!validate()) return;
     const btn = document.getElementById('btnSend'); btn.disabled = true; btn.textContent = '送信中…';
     const r = calc(A);
-    const payload = { submittedAt: new Date().toISOString(), version: D.version, sid: SID, answers: A, calc: r, ua: navigator.userAgent, page: location.href };
+    const payload = { submittedAt: new Date().toISOString(), version: D.version, sid: SID, answers: A, calc: r, retry: Number(A._retry || 0), ua: navigator.userAgent, page: location.href };
     const done = () => {
       A._sent = true; saveAnswers(); track('sent', { page: page, id: 'result' });
       render();

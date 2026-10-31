@@ -133,3 +133,19 @@ footer.site .brand img { width: 36px; height: 36px; border-radius: 50%; backgrou
 footer.site .brand .t { font-weight: 700; font-size: 13px; text-align: left; }
 footer.site .brand .s { font-size: 11px; color: #8a94a0; text-align: left; }
 footer.site .legal { font-size: 11px; color: #8a94a0; }
+
+/* 2026-10-31：LINE 追加で再試算（コード欄）・任意の連絡先欄 */
+.retry-note { margin: 12px 0 0; font-size: 13px; color: rgba(255,255,255,.92); text-align: center; line-height: 1.6; }
+.retry-note a { color: #fff; font-weight: 700; text-decoration: underline; white-space: nowrap; }
+.retry-form[hidden] { display: none; }
+.retry-form { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.retry-form input { width: 150px; font-size: 18px; letter-spacing: .2em; text-align: center; padding: 10px 12px; border: 1.5px solid #fff; border-radius: 8px; font-family: inherit; }
+.retry-form .btn { margin-top: 0; background: #fff; color: var(--navy); }
+.retry-form .err { width: 100%; text-align: center; color: #ffd9d9; font-size: 12.5px; }
+.contact-box { margin: 14px 0; padding: 16px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; }
+.contact-box .c-title { font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.contact-box .inp { margin-top: 8px; }
+.contact-box .btn { display: inline-block; margin-top: 12px; }
+.contact-box .err { color: #c0392b; font-size: 12.5px; margin-top: 6px; }
+.contact-box .c-note { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+.contact-box.sent { background: #eef3f8; text-align: center; }
