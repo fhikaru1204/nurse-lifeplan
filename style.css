@@ -150,5 +150,6 @@ footer.site .legal { font-size: 11px; color: #8a94a0; }
 .contact-box .inp { margin-top: 8px; }
 .contact-box .btn { display: inline-block; margin-top: 12px; }
 .contact-box .err { color: #c0392b; font-size: 12.5px; margin-top: 6px; }
+.contact-box .c-note.top { margin: 0 0 4px; }
 .contact-box .c-note { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
 .contact-box.sent { background: #eef3f8; text-align: center; }

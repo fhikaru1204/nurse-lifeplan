@@ -311,6 +311,7 @@
   function contactBox() {
     if (A._contactSent) return '<div class="contact-box sent"><div class="c-title">ご連絡先を受け付けました</div><p class="c-note">※藤田からご連絡させていただきます。</p></div>';
     return '<div class="contact-box"><div class="c-title">ご連絡先（任意）</div>' +
+      '<p class="c-note top">試算の同意で読んでいただいた<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>が、ここにも適用されます。</p>' +
       '<div class="inp"><input type="tel" id="cPhone" name="phone" inputmode="tel" autocomplete="tel" placeholder="電話番号" value="' + esc(A.phone || '') + '"></div>' +
       '<div class="inp"><input type="email" id="cEmail" name="email" inputmode="email" autocomplete="email" placeholder="メールアドレス" value="' + esc(A.email || '') + '"></div>' +
       '<div class="err" id="cErr"></div>' +
