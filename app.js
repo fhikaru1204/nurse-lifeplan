@@ -563,5 +563,36 @@
       .then(done).catch(() => { btn.disabled = false; btn.textContent = 'もう一度送る'; alert('送信できませんでした。電波の良いところでもう一度お試しください。'); });
   }
 
-  render(); track('open', { page: page, id: PAGES[page].id });
+  // 復元（2026-11-05 光さん）：Threads 内ブラウザで試算した人が LINE 内ブラウザ等の別の端末から自分の結果ページを呼び出す。?restore で入力画面 → GAS がシートから本人の回答を返す → この端末に保存して結果ページへ
+  function renderRestore(msg) {
+    root.innerHTML = '<h1>結果ページを呼び出す</h1>' +
+      '<p class="lead-s">別のブラウザや端末で試算した結果を、この画面に呼び出します。結果ページに出ていた<b>試算番号（英数字4文字）</b>か、試算で入力した<b>お名前</b>と、<b>生年月日</b>を入れてください。</p>' +
+      '<form id="rs" autocomplete="off">' +
+      '<div class="q"><div class="q-label">試算番号（英数字4文字）</div><div class="q-note">結果ページの黄色い枠に出ていた番号です。分からない方は空欄のまま、下のお名前を入れてください</div><div class="inp"><input type="text" id="rsCode" maxlength="4" autocapitalize="characters" placeholder="例：A1B2"></div></div>' +
+      '<div class="q"><div class="q-label">試算で入力したお名前</div><div class="q-note">試算番号を入れた方は空欄で大丈夫です</div><div class="inp"><input type="text" id="rsName"></div></div>' +
+      '<div class="q"><div class="q-label">生年月日<em>必須</em></div><div class="inp"><input type="date" id="rsDob"></div></div>' +
+      '<div class="err" id="rsErr">' + esc(msg || '') + '</div>' +
+      '<div class="nav"><span></span><button class="btn primary" id="rsGo" type="submit">結果ページを開く</button></div></form>' +
+      '<p class="tiny">まだ試算していない方は <a href="' + esc(location.pathname) + '">こちらから試算</a> できます。</p>';
+    document.getElementById('rs').addEventListener('submit', function (ev) { ev.preventDefault(); doRestore(); });
+  }
+  function doRestore() {
+    const code = (document.getElementById('rsCode').value || '').trim(), name = (document.getElementById('rsName').value || '').trim(), dob = (document.getElementById('rsDob').value || '').trim();
+    const err = document.getElementById('rsErr'), btn = document.getElementById('rsGo');
+    if (!dob) { err.textContent = '生年月日を入れてください'; return; }
+    if (!code && !name) { err.textContent = '試算番号か、お名前のどちらかを入れてください'; return; }
+    if (!CFG.endpoint) { err.textContent = '設定エラー（endpoint 未設定）'; return; }
+    btn.disabled = true; btn.textContent = '探しています…'; err.textContent = '';
+    const url = CFG.endpoint + '?kind=restore&dob=' + encodeURIComponent(dob) + (code ? '&code=' + encodeURIComponent(code) : '') + (name ? '&name=' + encodeURIComponent(name) : '');
+    fetch(url).then(r => r.json()).then(j => {
+      if (!j || !j.ok || !j.data || !j.data.answers) { btn.disabled = false; btn.textContent = '結果ページを開く'; err.textContent = (j && j.error === 'notfound') ? '見つかりませんでした。試算番号（またはお名前）と生年月日をもう一度ご確認ください。お名前は試算のときに入力したとおりに入れてください' : '呼び出せませんでした。電波の良いところでもう一度お試しください'; return; }
+      const a = j.data.answers; a._locked = true; a._sent = true; a._noIntro = 1; a._page = PAGES.length - 1; a._max = PAGES.length - 1; a._restored = 1;
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(a)); if (j.data.sid) localStorage.setItem('lp_sid', String(j.data.sid)); } catch (e) {}
+      track('restore', { page: 0, id: 'restore' });
+      location.replace(location.pathname);
+    }).catch(() => { btn.disabled = false; btn.textContent = '結果ページを開く'; err.textContent = '呼び出せませんでした。電波の良いところでもう一度お試しください'; });
+  }
+
+  if (/restore/.test(location.search)) { renderRestore(); track('open', { page: 0, id: 'restore' }); }
+  else { render(); track('open', { page: page, id: PAGES[page].id }); }
 })();

@@ -118,7 +118,28 @@ function doPost(e) {
   }
 }
 
-function doGet() { return ContentService.createTextOutput('ok'); }
+// 復元（2026-11-05 光さん）：?kind=restore&dob=YYYY-MM-DD&code=試算番号4文字（or &name=氏名）→ 回答シートで本人の行を探し、raw シートの JSON を返す（別の端末から結果ページを呼び出すため）
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+  if (p.kind !== 'restore') return ContentService.createTextOutput('ok');
+  const out = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const normN = v => String(v == null ? '' : v).split(' ').join('').split('　').join('');
+    const dobS = v => (v instanceof Date) ? Utilities.formatDate(v, 'Asia/Tokyo', 'yyyy-MM-dd') : String(v == null ? '' : v).slice(0, 10);
+    const code = String(p.code || '').trim().toLowerCase(), name = normN(p.name || ''), dob = String(p.dob || '').slice(0, 10);
+    if (!dob || (!code && !name)) return out({ ok: false, error: 'input' });
+    const ss = SpreadsheetApp.openById(SHEET_ID), sh = ss.getSheetByName(SHEET_NAME), raw = ss.getSheetByName('raw');
+    const COL_SID = 83; const last = sh.getLastRow(); if (last < 2) return out({ ok: false, error: 'notfound' });
+    const vals = sh.getRange(2, 1, last - 1, COL_SID).getValues();
+    let sid = '';
+    for (let i = vals.length - 1; i >= 0; i--) { const v = vals[i]; const s = String(v[COL_SID - 1] || ''); if (!s || dobS(v[2]) !== dob) continue; if (code ? s.slice(-4).toLowerCase() === code : normN(v[1]) === name) { sid = s; break; } }
+    if (!sid) return out({ ok: false, error: 'notfound' });
+    const rv = raw.getRange(1, 3, raw.getLastRow(), 1).getValues(); let json = '';
+    for (let i = rv.length - 1; i >= 0; i--) { const t = String(rv[i][0] || ''); if (t.indexOf('"sid":"' + sid + '"') >= 0) { json = t; break; } }
+    if (!json) return out({ ok: false, error: 'notfound' });
+    return out({ ok: true, data: JSON.parse(json) });
+  } catch (err) { return out({ ok: false, error: String(err) }); }
+}
 
 // 面談用ページのリンク（回答JSON → base64url を # の後ろに埋める・通知メールと同じ）
 function adminLinkOf(json) { return ADMIN_URL + '#d=' + Utilities.base64EncodeWebSafe(Utilities.newBlob(String(json)).getBytes()); }
