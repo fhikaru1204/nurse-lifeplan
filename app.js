@@ -269,7 +269,7 @@
       id: 'about', title: '最後に、お名前だけ教えてください', short: 'お名前',
       html: '<p class="lead-s">「結果を見る」を押すと、回答と結果が担当（藤田）に届き、同時に画面に数字が表示されます。<b>勤務先は空欄でも結果は出ます。</b></p>',
       questions: [
-        { id: 'name', type: 'text', label: 'お名前', required: true, note: 'ニックネームでも大丈夫です。結果ページに出る試算番号と一緒に、LINE で結果を受け取るときの目印に使います', ph: '' }, // 2026-11-05（光さん）：例「山田 花子」を外す（そのまま打つ人が 2 人出た）・ニックネーム可
+        { id: 'name', type: 'text', label: 'お名前', required: true, note: 'ニックネームでも大丈夫です。LINE で結果を受け取るときに、生年月日と一緒に照合に使います', ph: '' }, // 2026-11-05（光さん）：例「山田 花子」を外す（そのまま打つ人が 2 人出た）・ニックネーム可
         { id: 'address', type: 'text', label: 'お住まいの都道府県', note: '都道府県だけで大丈夫です。地域の生活費の目安に使います', required: true, ph: '例：東京都' },
         { id: 'employer', type: 'text', label: '勤務先名（任意）', ph: '例：○○総合病院' },
         { id: 'agree', type: 'check', label: '確認', required: true, agree: true, options: [{ v: 'yes', l: '<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>を読んで、同意します' }], raw: true, note: '「結果を見る」で回答が担当に送られます。下の四角をタップしてチェックを入れてください' }
@@ -306,7 +306,7 @@
       // 2026-10-31（光さん）：LINE 追加で再試算できる旨を 1 行。コードは公式 LINE のあいさつメッセージで渡す（固定・config.retryCode）
       "<p class=\"retry-note\">LINE追加で条件を変えて再試算も可能です。<a href=\"#\" id=\"retryOpen\">コードをお持ちの方はこちら</a></p>" +
       "<div class=\"retry-form\" id=\"retryForm\" hidden><input type=\"text\" id=\"retryCode\" inputmode=\"numeric\" maxlength=\"8\" placeholder=\"再試算コード\" autocomplete=\"off\"><button class=\"btn\" id=\"retryGo\" type=\"button\">やり直す</button><div class=\"err\" id=\"retryErr\"></div></div>" +
-      "<div class=\"must\"><b>友だち追加のあと、メニューの「試算済みの方こちら」を押して、試算番号 <span class=\"sid-code\">" + esc(sidCode()) + "</span> を送ってください</b><span>担当が番号で照合して、当日〜翌日にお返しします。番号が分からなくなったら、試算で入力したお名前でも大丈夫です。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、数字だけ受け取って大丈夫です。</span></div>" : "") +
+      "<div class=\"must\"><b>友だち追加のあと、メニューの「試算済みの方こちら」を押して、試算で入力した<u>お名前</u>と<u>生年月日</u>を送ってください</b><span>担当が照合して、当日〜翌日にお返しします。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、数字だけ受け取って大丈夫です。</span></div>" : "") +
       "</div>" + contactBox();
   }
   // 2026-10-31（光さん）：任意の連絡先（電話・メール）。自分から LINE を追加しない人向けに、藤田から連絡する受け身の入口
@@ -566,10 +566,9 @@
   // 復元（2026-11-05 光さん）：Threads 内ブラウザで試算した人が LINE 内ブラウザ等の別の端末から自分の結果ページを呼び出す。?restore で入力画面 → GAS がシートから本人の回答を返す → この端末に保存して結果ページへ
   function renderRestore(msg) {
     root.innerHTML = '<h1>結果ページを呼び出す</h1>' +
-      '<p class="lead-s">別のブラウザや端末で試算した結果を、この画面に呼び出します。結果ページに出ていた<b>試算番号（英数字4文字）</b>か、試算で入力した<b>お名前</b>と、<b>生年月日</b>を入れてください。</p>' +
+      '<p class="lead-s">別のブラウザや端末で試算した結果を、この画面に呼び出します。試算で入力した<b>お名前</b>と<b>生年月日</b>を入れてください。</p>' +
       '<form id="rs" autocomplete="off">' +
-      '<div class="q"><div class="q-label">試算番号（英数字4文字）</div><div class="q-note">結果ページの黄色い枠に出ていた番号です。分からない方は空欄のまま、下のお名前を入れてください</div><div class="inp"><input type="text" id="rsCode" maxlength="4" autocapitalize="characters" placeholder="例：A1B2"></div></div>' +
-      '<div class="q"><div class="q-label">試算で入力したお名前</div><div class="q-note">試算番号を入れた方は空欄で大丈夫です</div><div class="inp"><input type="text" id="rsName"></div></div>' +
+      '<div class="q"><div class="q-label">試算で入力したお名前<em>必須</em></div><div class="q-note">ニックネームで入力した方は、そのニックネームを入れてください</div><div class="inp"><input type="text" id="rsName"></div></div>' +
       '<div class="q"><div class="q-label">生年月日<em>必須</em></div><div class="inp"><input type="date" id="rsDob"></div></div>' +
       '<div class="err" id="rsErr">' + esc(msg || '') + '</div>' +
       '<div class="nav"><span></span><button class="btn primary" id="rsGo" type="submit">結果ページを開く</button></div></form>' +
@@ -577,15 +576,15 @@
     document.getElementById('rs').addEventListener('submit', function (ev) { ev.preventDefault(); doRestore(); });
   }
   function doRestore() {
-    const code = (document.getElementById('rsCode').value || '').trim(), name = (document.getElementById('rsName').value || '').trim(), dob = (document.getElementById('rsDob').value || '').trim();
+    const code = '', name = (document.getElementById('rsName').value || '').trim(), dob = (document.getElementById('rsDob').value || '').trim();
     const err = document.getElementById('rsErr'), btn = document.getElementById('rsGo');
     if (!dob) { err.textContent = '生年月日を入れてください'; return; }
-    if (!code && !name) { err.textContent = '試算番号か、お名前のどちらかを入れてください'; return; }
+    if (!name) { err.textContent = 'お名前を入れてください'; return; }
     if (!CFG.endpoint) { err.textContent = '設定エラー（endpoint 未設定）'; return; }
     btn.disabled = true; btn.textContent = '探しています…'; err.textContent = '';
     const url = CFG.endpoint + '?kind=restore&dob=' + encodeURIComponent(dob) + (code ? '&code=' + encodeURIComponent(code) : '') + (name ? '&name=' + encodeURIComponent(name) : '');
     fetch(url).then(r => r.json()).then(j => {
-      if (!j || !j.ok || !j.data || !j.data.answers) { btn.disabled = false; btn.textContent = '結果ページを開く'; err.textContent = (j && j.error === 'notfound') ? '見つかりませんでした。試算番号（またはお名前）と生年月日をもう一度ご確認ください。お名前は試算のときに入力したとおりに入れてください' : '呼び出せませんでした。電波の良いところでもう一度お試しください'; return; }
+      if (!j || !j.ok || !j.data || !j.data.answers) { btn.disabled = false; btn.textContent = '結果ページを開く'; err.textContent = (j && j.error === 'notfound') ? '見つかりませんでした。お名前と生年月日をもう一度ご確認ください。お名前は試算のときに入力したとおり（ニックネームならそのニックネーム）に入れてください' : '呼び出せませんでした。電波の良いところでもう一度お試しください'; return; }
       const a = j.data.answers; a._locked = true; a._sent = true; a._noIntro = 1; a._page = PAGES.length - 1; a._max = PAGES.length - 1; a._restored = 1;
       try { localStorage.setItem(STORE_KEY, JSON.stringify(a)); if (j.data.sid) localStorage.setItem('lp_sid', String(j.data.sid)); } catch (e) {}
       track('restore', { page: 0, id: 'restore' });
