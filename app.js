@@ -269,7 +269,7 @@
       id: 'about', title: '最後に、お名前だけ教えてください', short: 'お名前',
       html: '<p class="lead-s">「結果を見る」を押すと、回答と結果が担当（藤田）に届き、同時に画面に数字が表示されます。<b>勤務先は空欄でも結果は出ます。</b></p>',
       questions: [
-        { id: 'name', type: 'text', label: 'お名前', required: true, ph: '例：山田 花子' },
+        { id: 'name', type: 'text', label: 'お名前', required: true, note: 'ニックネームでも大丈夫です。結果ページに出る試算番号と一緒に、LINE で結果を受け取るときの目印に使います', ph: '' }, // 2026-11-05（光さん）：例「山田 花子」を外す（そのまま打つ人が 2 人出た）・ニックネーム可
         { id: 'address', type: 'text', label: 'お住まいの都道府県', note: '都道府県だけで大丈夫です。地域の生活費の目安に使います', required: true, ph: '例：東京都' },
         { id: 'employer', type: 'text', label: '勤務先名（任意）', ph: '例：○○総合病院' },
         { id: 'agree', type: 'check', label: '確認', required: true, agree: true, options: [{ v: 'yes', l: '<a href="privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>を読んで、同意します' }], raw: true, note: '「結果を見る」で回答が担当に送られます。下の四角をタップしてチェックを入れてください' }
@@ -296,6 +296,8 @@
     if (kidsYoung || a.childWish === "yes") return { t: "お子さんの進路（公立・私立、自宅・下宿）ごとの教育費と、65歳の残りを LINE でお送りします", b: "上の数字は、進路のご回答どおりの前提です。進路を変えた場合に、65歳に残る見込みがいくら変わるか。組み直してお返しします。" };
     return { t: "65歳までの、年ごとの収入と支出の表を LINE でお送りします", b: "上の数字は合計です。何歳のときに貯金が増えて、何歳で減るのか。年ごとの表にして、お返しします。" };
   }
+  // 2026-11-05（光さん）：LINE の照合を氏名でなく試算番号（sid の末尾 4 文字・大文字）で行う。シートの sid 列の末尾と一致
+  function sidCode() { return String(SID || '').slice(-4).toUpperCase(); }
   function lineBox(a) {
     const h = lineHook(a);
     return "<div class=\"detail sent-box\"><div class=\"d-title\">" + esc(h.t) + "</div><p>" + esc(h.b) + "</p>" +
@@ -304,7 +306,7 @@
       // 2026-10-31（光さん）：LINE 追加で再試算できる旨を 1 行。コードは公式 LINE のあいさつメッセージで渡す（固定・config.retryCode）
       "<p class=\"retry-note\">LINE追加で条件を変えて再試算も可能です。<a href=\"#\" id=\"retryOpen\">コードをお持ちの方はこちら</a></p>" +
       "<div class=\"retry-form\" id=\"retryForm\" hidden><input type=\"text\" id=\"retryCode\" inputmode=\"numeric\" maxlength=\"8\" placeholder=\"再試算コード\" autocomplete=\"off\"><button class=\"btn\" id=\"retryGo\" type=\"button\">やり直す</button><div class=\"err\" id=\"retryErr\"></div></div>" +
-      "<div class=\"must\"><b>友だち追加のあと、メニューの「試算済みの方こちら」を押して、試算で入力したお名前（フルネーム）を送ってください</b><span>担当が照合して、当日〜翌日にお返しします。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、数字だけ受け取って大丈夫です。</span></div>" : "") +
+      "<div class=\"must\"><b>友だち追加のあと、メニューの「試算済みの方こちら」を押して、試算番号 <span class=\"sid-code\">" + esc(sidCode()) + "</span> を送ってください</b><span>担当が番号で照合して、当日〜翌日にお返しします。番号が分からなくなったら、試算で入力したお名前でも大丈夫です。面談（Zoom か対面・無料）を希望する方は「面談希望」と添えてください。希望しない方は、数字だけ受け取って大丈夫です。</span></div>" : "") +
       "</div>" + contactBox();
   }
   // 2026-10-31（光さん）：任意の連絡先（電話・メール）。自分から LINE を追加しない人向けに、藤田から連絡する受け身の入口

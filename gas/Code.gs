@@ -51,10 +51,11 @@ function doPost(e) {
       '借入有無', '借入種類', '借入残高', '月返済', '預貯金', 'その他資産', '資産形成', 'その他内容', '毎月貯金', '保険', '保険料', '不安', '自由記述',
       '老後スタイル', '老後一言', '老後生活費', '連絡方法', '時間帯', '聞きたいこと', '聞きたいこと詳細',
       '判定', '入るお金', '出ていくお金', '65歳に残る見込', '老後必要額', '差額', 'UA', 'sid',
-      '再試算', '電話', 'メール' // 2026-10-31 追加（末尾）：再試算＝LINE のコードでやり直した回数（0＝初回）・電話/メール＝結果ページの任意欄
+      '再試算', '電話', 'メール', // 2026-10-31 追加（末尾）：再試算＝LINE のコードでやり直した回数（0＝初回）・電話/メール＝結果ページの任意欄
+      '面談ページ' // 2026-11-05 追加（末尾・87列目）：クリックで admin.html（回答JSONを埋めたリンク）が開く。過去分は backfillLinks() を1回実行
     ];
     if (sh.getLastRow() === 0) sh.appendRow(cols);
-    else if (String(sh.getRange(1, cols.length).getValue()) !== cols[cols.length - 1]) sh.getRange(1, cols.length - 2, 1, 3).setValues([cols.slice(-3)]); // 既存シートに新しい3列の見出しを足す
+    else if (String(sh.getRange(1, cols.length).getValue()) !== cols[cols.length - 1]) sh.getRange(1, cols.length - 3, 1, 4).setValues([cols.slice(-4)]); // 既存シートに新しい列の見出しを足す（末尾4列を書き直す）
     const j = v => Array.isArray(v) ? v.join('、') : (v == null ? '' : v);
     const row = [
       new Date(), j(a.name), j(a.dob), c.age, j(a.address), j(a.employer), j(a.employerAddr), j(a.employ), j(a.years), j(a.totalYears), j(a.income), j(a.role), j(a.shift), j(a.nights), j(a.housing), j(a.housingCost), j(a.subsidy), j(a.household),
@@ -66,7 +67,8 @@ function doPost(e) {
       j(a.debtHas), j(a.debtType), j(a.debtTotal), j(a.debtMonthly), j(a.savings), j(a.investAssets), j(a.assets), j(a.assetsOther), j(a.savingMonthly), j(a.insurance), j(a.insuranceMonthly), j(a.worries), j(a.worryText),
       j(a.retireStyle), j(a.retireText), j(a.retireLiving), j(a.contact), j(a.slot), j(a.askTopics), j(a.askOther),
       c.verdict, c.totalIn, c.totalOut, c.at65, c.retireNeed, c.gap, body.ua, String(body.sid || ''),
-      Number(body.retry || 0), j(a.phone), j(a.email)
+      Number(body.retry || 0), j(a.phone), j(a.email),
+      adminHyperlink(e.postData.contents) // 面談ページ（HYPERLINK 式）
     ];
     // 1人1回の補強：同じ氏名＋生年月日の過去の送信を数える（拒否はせず、通知メールに出す）
     const norm = v => String(v == null ? '' : v).split(' ').join('').split('　').join('');
@@ -82,7 +84,7 @@ function doPost(e) {
     let raw = ss.getSheetByName('raw'); if (!raw) raw = ss.insertSheet('raw');
     raw.appendRow([new Date(), j(a.name), e.postData.contents, (prior + 1) + '回目']);
 
-    const adminLink = ADMIN_URL + '#d=' + Utilities.base64EncodeWebSafe(Utilities.newBlob(e.postData.contents).getBytes());
+    const adminLink = adminLinkOf(e.postData.contents);
     const lines = [
       (Number(body.retry || 0) > 0 ? '🔁 LINE のコードで再試算した回答です（' + body.retry + ' 回目のやり直し）' : (prior > 0 ? '⚠ 同じ氏名・生年月日の送信が過去に ' + prior + ' 件あります（今回が ' + (prior + 1) + ' 回目・初回 ' + firstAt + '）' : '新しい回答が届きました。')),
       '氏名：' + j(a.name) + '（' + c.age + '歳）',
@@ -117,3 +119,26 @@ function doPost(e) {
 }
 
 function doGet() { return ContentService.createTextOutput('ok'); }
+
+// 面談用ページのリンク（回答JSON → base64url を # の後ろに埋める・通知メールと同じ）
+function adminLinkOf(json) { return ADMIN_URL + '#d=' + Utilities.base64EncodeWebSafe(Utilities.newBlob(String(json)).getBytes()); }
+function adminHyperlink(json) { return '=HYPERLINK("' + adminLinkOf(json) + '","開く")'; }
+
+// 過去の回答行に「面談ページ」リンクを埋める（2026-11-05・GAS エディタで1回だけ実行：関数を選んで ▶）。raw シートの JSON を sid で照合して 87 列目に HYPERLINK を書く
+function backfillLinks() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sh = ss.getSheetByName(SHEET_NAME), raw = ss.getSheetByName('raw');
+  const COL_SID = 83, COL_LINK = 87;
+  if (String(sh.getRange(1, COL_LINK).getValue()) !== '面談ページ') sh.getRange(1, COL_LINK).setValue('面談ページ');
+  const last = sh.getLastRow(); if (last < 2) return;
+  const bySid = {};
+  raw.getRange(1, 3, raw.getLastRow(), 1).getValues().forEach(function (r) { const m = String(r[0]).match(/"sid":"([^"]+)"/); if (m) bySid[m[1]] = String(r[0]); });
+  const sids = sh.getRange(2, COL_SID, last - 1, 1).getValues();
+  const cur = sh.getRange(2, COL_LINK, last - 1, 1).getFormulas();
+  let n = 0;
+  for (let i = 0; i < sids.length; i++) {
+    const sid = String(sids[i][0] || ''); if (!sid || cur[i][0] || !bySid[sid]) continue;
+    sh.getRange(i + 2, COL_LINK).setFormula(adminHyperlink(bySid[sid])); n++;
+  }
+  Logger.log('面談ページのリンクを ' + n + ' 行に書きました');
+}
