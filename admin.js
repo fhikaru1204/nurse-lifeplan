@@ -140,7 +140,7 @@
         '<div class="card c-gap ' + gapCls + '"><div class="c-label">65歳時に貯まっている金額 − 老後に必要な資金</div>' +
           '<div class="c-formula">' + fmt(bal65) + ' − ' + fmt(r.retireNeed) + '</div>' +
           '<div class="c-num">＝ ' + (gap >= 0 ? '' : '−') + fmt(Math.abs(gap)) + '円 <span class="c-tag">' + gapLabel + '</span></div>' +
-          '<div class="c-sub">老後に必要な資金＝（希望 ' + r.living + '万/月' + (r.retireShare < 1 ? '×分担' + Math.round(r.retireShare * 100) + '%' : '') + ' − 年金 ' + r.pension + '万/月）×12か月×25年＋介護費用' + D.careCost + '万' + (r.retireHousing ? '＋老後の住居費（' + (r.ownerLoan || r.upkeepYear ? '維持費' : '家賃') + ' 年' + Math.round(r.retireHousingYear) + '万×25年' + (r.retireShare < 1 ? '×分担' : '') + '）' + fmt(r.retireHousing) + '万' : '') + (r.loanAfter65 ? '＋65歳以降のローン ' + fmt(r.loanAfter65) + '万' : '') + '</div></div>'
+          '<div class="c-sub">老後に必要な資金＝（希望 ' + r.living + '万/月' + (r.retireShare < 1 ? '×分担' + Math.round(r.retireShare * 100) + '%' : '') + ' − 年金 ' + r.pension + '万/月）×12か月×25年＋介護費用' + D.careCost + '万' + (r.retireHousing ? '＋老後の住居費（' + (r.ownerLoan || r.upkeepYear ? '維持費' : '家賃') + ' 年' + Math.round(r.retireHousingYear) + '万×25年' + (r.retireShare < 1 ? '×分担' : '') + '）' + fmt(r.retireHousing) : '') + (r.loanAfter65 ? '＋65歳以降のローン ' + fmt(r.loanAfter65) : '') + '</div></div>'
 ;
     };
     h += '<div class="sum" id="sumCards">' + sumCards(base, '回答どおり') + '</div>';
