@@ -264,7 +264,7 @@
       questions: [
         { id: 'retireStyle', type: 'check', label: 'どんな老後を過ごしたいですか（あてはまるもの全部）', required: true, options: OPT.retireStyle },
         { id: 'retireText', type: 'text', label: '一言で言うと', ph: '例：年に2回は海外に行ける生活', note: '任意' },
-        { id: 'retireLiving', type: 'radio', label: '老後、月にいくらで暮らしたいですか（夫婦なら世帯の額で）', required: true, options: OPT.retireLiving }
+        { id: 'retireLiving', type: 'radio', label: '老後、月にいくらで暮らしたいですか（夫婦なら世帯の額で）', required: true, options: OPT.retireLiving, note: '家賃・住宅ローン・持ち家の維持費は別に足して計算します（この額には含めないでください）' }
       ]
     },
     {
@@ -396,7 +396,7 @@
         ['年収（帯の中央値）→ 手取り（×0.77）', fmt(r.incomeNow) + ' → ' + fmt(r.incomeNow * 0.77)], ['今の生活費（手取り−貯金−旅行−自分のためのお金）→ 結婚まで固定', fmt(r.livingNow)], ['結婚後の一人あたり生活費（統計・住居除く・' + (r.livingArea ? '住所から' + r.livingArea : '全国') + '）→ ×世帯倍率＋今の家賃、分担で割る', r.livingStat + '万/月'], ['65歳までの基礎生活費（累計・購入後は家賃分を除く）', fmt(r.livingPaid)], ['夜勤離脱・時短で65歳までに減る手取り（累計）', fmt(r.incomeLost)],
         ['今の預貯金＋資産', fmt(r.now)], ['65歳までの積み上げ（貯金ペース＋残った余り−赤字の年の取り崩し）', fmt(r.savedByYear)], ['使途未定で消える分（余りのうち貯まらない分・貯まる割合' + Math.round(r.keepRate * 100) + '%）', fmt(r.leaked)], ['退職金の目安（勤続' + Math.round(r.tenure) + '年想定・本人の月給で換算）額面→税引後', fmt(r.severance) + ' → ' + fmt(r.severanceNet)], ['借入残高', fmt(r.debt)],
         ['<b>65歳に残る見込み（下限0の前）</b>', '<b>' + fmt(r.at65raw) + '</b>'],
-        ['年金の目安：今の制度' + r.pensionFull + '万 × 給付水準' + Math.round(r.pensionLevel * 100) + '%', r.pension + '万/月'], ['老後（希望' + r.living + '万×分担' + Math.round(r.retireShare * 100) + '%−年金' + r.pension + '万）×12×25年＋介護542', fmt(r.retireNeed)], ['<b>差額（判定）</b>', '<b>' + fmt(r.gap) + '</b>'],
+        ['年金の目安：今の制度' + r.pensionFull + '万 × 給付水準' + Math.round(r.pensionLevel * 100) + '%', r.pension + '万/月'], ['老後（希望' + r.living + '万×分担' + Math.round(r.retireShare * 100) + '%−年金' + r.pension + '万）×12×25年＋介護542' + (r.retireHousing ? '＋老後の住居費' + fmt(r.retireHousing) : '') + (r.loanAfter65 ? '＋65歳以降のローン' + fmt(r.loanAfter65) : ''), fmt(r.retireNeed)], ['<b>差額（判定）</b>', '<b>' + fmt(r.gap) + '</b>'],
         ['分担割合／結婚の年', r.shareVal + '／' + (r.marryYear === 999 ? 'なし' : r.marryYear + '歳')]
       ]) + '</div>' : '') +
       whatIf(r) +

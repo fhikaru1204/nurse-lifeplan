@@ -256,12 +256,16 @@
     // 老後：希望の月額は世帯の額として、結婚後の分担割合をかけた本人負担分から本人の年金を引く。介護は本人分
     const retireShare = couple ? shareVal : 1;
     const loanAfter65 = ownerLoan ? Math.round(Math.max(0, loanEndAge - 65) * ownLoanYear * retireShare) : 0;   // 65歳より先に残るローン（完済予定年齢まで・分担後）
-    const retireNeed = Math.max(0, Math.round(Math.max(0, livingRetire * retireShare - pension) * 12 * 25 + D.careCost + loanAfter65));
+    // 老後の住居費（2026-11-09 光さん指示「よりリアルに」）：希望の月額とは別に 65〜90歳の25年分を足す。賃貸・社宅・寮（買う予定なし）＝今の家賃（補助なしの額）／持ち家・購入予定＝維持費（固定資産税＋修繕・管理）。実家・その他は 0（分からないので足さない）
+    const willOwn = owner || a.homeWish === 'yes';
+    const retireHousingYear = willOwn ? upkeepYear : ((a.housing === '賃貸' || a.housing === '社宅・寮') ? Number(a.housingCost || 0) * 12 : 0);
+    const retireHousing = Math.round(retireHousingYear * 25 * retireShare);
+    const retireNeed = Math.max(0, Math.round(Math.max(0, livingRetire * retireShare - pension) * 12 * 25 + D.careCost + loanAfter65 + retireHousing));
     const gap = at65 - retireNeed;
     const verdict = gap >= 300 ? 'ok' : gap >= -300 ? 'tight' : 'short';
     const bigHH = marryHH + birthHH + eduTotalHH + homeUpHH + carBuyYears.length * carPrice + Math.round(tripHHPaid) + Math.round(hobbyYear * yearsTo65);
 
-    return { ownerLoan, loanEndAge, ownLoanYear, loanAfter65, upkeepYear: (owner ? upkeepYear : 0), undecided, savingYear: savingNow, jobChange, jobYear, jobAssumed, severanceTax, severanceNet, sevMonths, monthlyPay60: Math.round(monthlyPay60 * 10) / 10, sevDeduct, yearsNow, stopAge, fullTime, leaked, keepRate, pensionFull, pensionLevel, livingArea: livingArea ? livingArea.name : null, livingStat: Math.round(livStatYear / 12 * 10) / 10, shareAuto, age, yearsTo65, kids, kNew, couple, shareVal, shareLabel, marryYear, marry, birth, homeUp, oneTime, eduTotalHH, eduPaid, carPaid, tripPaid, hobbyPaid, loanPaid, livingPaid, livingRate, livingNow: living, rentNetYear, incomeNow, netIn, rentIn, incomeLost, now, savedByYear, severance, tenure, debt, totalIn, totalOut, bigPersonal, bigHH, at65raw, at65, investPaid, investValue, pension, living: livingRetire, retireShare, retireNeed, gap, verdict, nightStop, homeYear, childStart, carBuyYears, downPay, loanYearHH, rows };
+    return { ownerLoan, loanEndAge, ownLoanYear, loanAfter65, retireHousing, retireHousingYear, upkeepYear: (owner ? upkeepYear : 0), undecided, savingYear: savingNow, jobChange, jobYear, jobAssumed, severanceTax, severanceNet, sevMonths, monthlyPay60: Math.round(monthlyPay60 * 10) / 10, sevDeduct, yearsNow, stopAge, fullTime, leaked, keepRate, pensionFull, pensionLevel, livingArea: livingArea ? livingArea.name : null, livingStat: Math.round(livStatYear / 12 * 10) / 10, shareAuto, age, yearsTo65, kids, kNew, couple, shareVal, shareLabel, marryYear, marry, birth, homeUp, oneTime, eduTotalHH, eduPaid, carPaid, tripPaid, hobbyPaid, loanPaid, livingPaid, livingRate, livingNow: living, rentNetYear, incomeNow, netIn, rentIn, incomeLost, now, savedByYear, severance, tenure, debt, totalIn, totalOut, bigPersonal, bigHH, at65raw, at65, investPaid, investValue, pension, living: livingRetire, retireShare, retireNeed, gap, verdict, nightStop, homeYear, childStart, carBuyYears, downPay, loanYearHH, rows };
   }
 
   window.LP_CALC = { calc, ageFrom, kidsNew, kidsNow, isCouple, statAt, areaFromAddress, undecidedItems };
