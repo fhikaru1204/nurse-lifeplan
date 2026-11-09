@@ -100,6 +100,7 @@
     nights: ['0回', '1〜2回', '3〜4回', '5〜6回', '7〜8回', '9回以上'].map(s => ({ v: s, l: s })),
     housing: ['賃貸', '持ち家（ローンあり）', '持ち家（完済）', '実家', '社宅・寮', 'その他'].map(s => ({ v: s, l: s })),
     subsidy: [['none', 'なし'], ['h1', '1万円未満'], ['h2', '1〜2万円'], ['h3', '2〜3万円'], ['h3p', '3万円以上']].map(p => ({ v: p[0], l: p[1] })),
+    loanEndAge: [['e60', '60歳まで'], ['e65', '65歳まで'], ['e70', '70歳まで'], ['e75', '75歳以降'], ['unknown', 'わからない']].map(p => ({ v: p[0], l: p[1] })),
     household: ['独身・一人暮らし', '独身・実家', '独身・同棲', '既婚・子なし', '既婚・子あり', 'シングル（子あり）', 'その他'].map(s => ({ v: s, l: s })),
     marital: ['独身', '既婚', '離婚・死別'].map(s => ({ v: s, l: s })),
     shareMode: [{ v: 'all', l: 'ほぼ自分が全部' }, { v: 'more', l: '自分が多め' }, { v: 'half', l: '半々' }, { v: 'less', l: '相手が多め' }],
@@ -164,6 +165,7 @@
         { id: 'nights', type: 'radio', label: '夜勤の回数（月）', options: OPT.nights, showIf: a => a.shift && a.shift !== '日勤のみ' },
         { id: 'housing', type: 'radio', label: '今の住まい', required: true, options: OPT.housing },
         { id: 'housingCost', type: 'number', label: '家賃 または 住宅ローンの返済額（月）', required: true, unit: '万円', showIf: a => a.housing === '賃貸' || a.housing === '持ち家（ローンあり）' || a.housing === '社宅・寮' },
+        { id: 'loanEndAge', type: 'radio', label: '住宅ローンの完済予定', required: true, options: OPT.loanEndAge, note: '「わからない」は平均の73歳で計算します', showIf: a => a.housing === '持ち家（ローンあり）' },
         { id: 'subsidy', type: 'radio', label: '家賃補助・住宅手当', required: true, options: OPT.subsidy },
         { id: 'household', type: 'radio', label: '世帯の状況', required: true, options: OPT.household }
       ]
@@ -482,6 +484,7 @@
       if (q.required && empty) msg = '選んでください';
       if (!msg && q.type === 'date' && v && ageFrom(v) == null) msg = '日付を確認してください';
       if (!msg && q.type === 'number' && v && Number(v) < 0) msg = '0以上で入力してください';
+      if (!msg && q.type === 'number' && q.unit === '万円' && /Monthly$|^housingCost$/.test(q.id) && v && Number(v) >= 100) msg = '単位は万円です。月8万500円なら 8.05 と入力してください';   // 2026-11-09：1600・73000 のような円単位の入力をはじく
       err.textContent = msg; box.classList.toggle('bad', !!msg);
       if (msg) { ok = false; if (!first) first = box; }
     });

@@ -15,6 +15,7 @@
   const L = {
     income: { i300: '300万未満', i350: '300〜349万', i400: '350〜399万', i450: '400〜449万', i500: '450〜499万', i550: '500〜549万', i600: '550〜599万', i700: '600〜699万', i800: '700〜799万', i1000: '800〜999万', i1000p: '1,000万以上' },
     subsidy: { none: 'なし', h1: '1万円未満', h2: '1〜2万円', h3: '2〜3万円', h3p: '3万円以上' },
+    loanEndAge: { e60: '60歳まで', e65: '65歳まで', e70: '70歳まで', e75: '75歳以降', unknown: 'わからない→平均73歳' },
     wish3: { yes: 'したい', no: 'しない', undecided: '未定' },
     childWish: { yes: '欲しい', no: '欲しくない', enough: 'もう十分', undecided: '未定' },
     weddingPlan: { photo: '写真だけ・挙式のみ', family: '親族だけの食事会婚', small: '友人も呼ぶ小規模', std: '標準', large: '大規模', undecided: '未定' },
@@ -147,7 +148,7 @@
     h += '<div class="grid2">' +
       '<div class="box"><h2>基本</h2><dl class="kv">' +
       kv('生年月日', a.dob) + kv('住所', a.address) + kv('勤務先', a.employer + (a.employerAddr ? '（' + a.employerAddr + '）' : '')) + kv('雇用・役職', j(a.employ) + '／' + j(a.role)) + kv('勤続／経験', j(a.years) + '／' + j(a.totalYears)) +
-      kv('年収', lv(L.income, a.income)) + kv('勤務形態', j(a.shift) + (a.nights ? '・夜勤' + a.nights + '/月' : '')) + kv('住まい', j(a.housing) + (a.housingCost ? '・月' + a.housingCost + '万' : '') + '・補助' + lv(L.subsidy, a.subsidy)) + kv('世帯', a.household) +
+      kv('年収', lv(L.income, a.income)) + kv('勤務形態', j(a.shift) + (a.nights ? '・夜勤' + a.nights + '/月' : '')) + kv('住まい', j(a.housing) + (a.housingCost ? '・月' + a.housingCost + '万' : '') + (a.housing === '持ち家（ローンあり）' ? '・完済' + lv(L.loanEndAge, a.loanEndAge || 'unknown') : '') + '・補助' + lv(L.subsidy, a.subsidy)) + kv('世帯', a.household) +
       '</dl></div>' +
       '<div class="box"><h2>家族と希望</h2><dl class="kv">' +
       kv('婚姻', j(a.marital) + (a.marital !== '既婚' ? '・結婚' + lv(L.wish3, a.marryWish) + (a.marryWhen ? '・' + a.marryWhen : '') + (a.weddingPlan ? '・' + lv(L.weddingPlan, a.weddingPlan) : '') : '')) +
