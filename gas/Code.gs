@@ -163,3 +163,26 @@ function backfillLinks() {
   }
   Logger.log('面談ページのリンクを ' + n + ' 行に書きました');
 }
+
+// 回答の訂正（2026-11-09 光さん指示・田中さん）：LINE で判明した住宅ローン 月 80,500 円（回答欄は 1600 の単位ミス）を 8.05 に直し、完済予定「わからない」（平均 73 歳）を足して、raw の JSON・回答行の家賃/ローン月額と判定 6 列・面談ページのリンクを書き直す。GAS エディタで 1 回だけ実行。raw の 5 列目に訂正メモを残す
+function fixTanaka20261109() {
+  const SID = 'b0h4zlicmw2z6zdz';
+  const NEW_JSON = ''; // 実行時に、訂正後の回答 JSON（raw シートの形式・answers と calc を差し替えたもの）をここに貼る。個人情報なのでリポジトリには置かない
+  const ss = SpreadsheetApp.openById(SHEET_ID), sh = ss.getSheetByName(SHEET_NAME), raw = ss.getSheetByName('raw');
+  const c = JSON.parse(NEW_JSON).calc;
+  let rawRow = 0;
+  const rv = raw.getRange(1, 3, raw.getLastRow(), 1).getValues();
+  for (let i = rv.length - 1; i >= 0; i--) { if (String(rv[i][0] || '').indexOf('"sid":"' + SID + '"') >= 0) { rawRow = i + 1; break; } }
+  if (!rawRow) throw new Error('raw に sid が見つからない');
+  raw.getRange(rawRow, 3).setValue(NEW_JSON);
+  raw.getRange(rawRow, 5).setValue('2026-11-09 訂正：家賃/ローン月額 1600 → 8.05（LINE で月 80,500 円と判明）・完済予定 unknown（平均 73 歳）を追加・calc を再計算値に差し替え');
+  const COL_SID = 83, COL_LINK = 87;
+  const sids = sh.getRange(2, COL_SID, sh.getLastRow() - 1, 1).getValues();
+  let row = 0;
+  for (let i = sids.length - 1; i >= 0; i--) { if (String(sids[i][0]) === SID) { row = i + 2; break; } }
+  if (!row) throw new Error('回答シートに sid が見つからない');
+  sh.getRange(row, 16).setValue('8.05');
+  sh.getRange(row, 76, 1, 6).setValues([[c.verdict, c.totalIn, c.totalOut, c.at65, c.retireNeed, c.gap]]);
+  sh.getRange(row, COL_LINK).setFormula(adminHyperlink(NEW_JSON));
+  Logger.log('訂正完了: 回答 ' + row + ' 行目 / raw ' + rawRow + ' 行目 / 判定 ' + c.verdict + ' 65歳に残る ' + c.at65 + ' 老後必要 ' + c.retireNeed);
+}
