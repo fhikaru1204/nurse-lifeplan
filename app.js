@@ -509,6 +509,8 @@
     root.querySelectorAll('.steps [data-go]').forEach(s => { s.onclick = () => goTo(Number(s.getAttribute('data-go'))); });
     const s = document.getElementById('btnSend'); if (s) s.onclick = send;
     const ro = document.getElementById('retryOpen'); if (ro) ro.onclick = ev => { ev.preventDefault(); const f = document.getElementById('retryForm'); f.hidden = !f.hidden; if (!f.hidden) document.getElementById('retryCode').focus(); };
+    // 2026-11-13（光さん）：LINE の友だち追加ボタンを押したかを log に残す（送信 20 件で LINE 追加 1 人＝押していないのか、押して LINE 側でやめたのかを分けるため）。遷移は止めない
+    const la = document.querySelector('.line-add'); if (la) la.onclick = () => { track('line', { page: page, id: 'result' }); };
     const rg = document.getElementById('retryGo'); if (rg) rg.onclick = retry;
     const rc = document.getElementById('retryCode'); if (rc) rc.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); retry(); } };
     const cs = document.getElementById('cSend'); if (cs) cs.onclick = sendContact;
